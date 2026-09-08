@@ -5,6 +5,10 @@
 *.pem
 *.key
 secrets.json
+token.txt
+*token*.txt
+*.pat
+credentials.json
 
 # Node
 node_modules/
