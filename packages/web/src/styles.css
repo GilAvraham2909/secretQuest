@@ -1,0 +1,108 @@
+/*
+ * Deliberately plain. This is a diagnostic page, not product UI — the real
+ * visual system is specified in docs/design-direction.md and starts at M2.
+ * Styling it "nicely" here would only make it harder to see the glyphs.
+ */
+
+:root {
+  color-scheme: light;
+  --ink: #1a1a20;
+  --muted: #6b6b76;
+  --line: #d8d8de;
+  --bg: #fbfaf7;
+  --card: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.head h1 { font-size: 2.25rem; margin: 0; }
+.head .sub { color: var(--muted); margin: 0.25rem 0 0; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  margin: 1.5rem 0 2rem;
+  padding: 1rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.controls fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.controls legend { float: inline-start; font-weight: 700; padding-inline-end: 0.75rem; }
+.controls label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+.controls .size { display: flex; align-items: center; gap: 0.6rem; }
+.controls input[type='range'] { inline-size: 200px; }
+
+section { margin-block: 2.5rem; }
+section h2 { font-size: 1.15rem; margin: 0 0 0.35rem; }
+.ref { color: var(--muted); font-weight: 400; font-size: 0.85em; }
+.hint { color: var(--muted); margin: 0 0 1rem; max-inline-size: 60ch; line-height: 1.6; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.cell {
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-align: center;
+}
+.cell.muted { opacity: 0.72; }
+
+.glyph {
+  /*
+   * 1.35 minimum: a tighter line-height clips the qamats tail at large sizes.
+   * The overflow guard is intentional — if a mark is being cut off, it should
+   * be visible here rather than silently hidden.
+   */
+  line-height: 1.35;
+  overflow: visible;
+  min-block-size: 1.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+figcaption {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.bare { font-size: 1.4rem; color: var(--ink); }
+code { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; }
+
+.foot { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); }

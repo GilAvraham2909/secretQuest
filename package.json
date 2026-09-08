@@ -1,0 +1,24 @@
+{
+  "name": "secret-journey",
+  "version": "0.1.0",
+  "private": true,
+  "description": "המסע הסודי — Hebrew letter-learning game for ages 5-7",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @secret-journey/web",
+    "build": "npm run build --workspace @secret-journey/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run test"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}

@@ -1253,7 +1253,17 @@ Nine milestones, each independently demonstrable. The ordering is driven by one 
 
 ### M3 — Mechanics 2 and 3, and the diff is the deliverable *(~4 days)*
 
-- `FishingMechanic` (drag-the-rod — deliberately **not** tap, to prove the contract handles non-tap selection) and `LetterTrainMechanic` (gate + advance).
+- `FishingMechanic` (**tap-to-select — client decision, 2026-09-09**) and
+  `LetterTrainMechanic` (gate + advance).
+
+  > **Decision: fishing is TAP, not drag.** An earlier draft specified
+  > drag-the-rod to prove the contract handles non-tap selection. Overruled by
+  > the research finding that children aged 3–6 reliably fail to keep a target
+  > selected while dragging — a drag mechanic would measure motor control, not
+  > letter recognition, and would corrupt the very data this MVP exists to
+  > collect. All mechanics are tap-only, minimum target 80px. The one exception
+  > is `TraceMechanic` (§M6), where the finger path *is* the skill being
+  > practised and there is no fail state.
 - Zero changes to the engine, the hint ladder, the assessment engine, or the content schema. If any change is needed, the contract was wrong — fix the contract, not the mechanic.
 
 **Demo:** run the 15 letter-recognition tasks across all three mechanics. Then **show the client the M2→M3 diff** and say: *this is what adding a mechanic costs — one registry row, one module, zero changes to skills.* That is criterion 3.12, demonstrated rather than claimed. Then, live in front of them, change one cell in `tasks.csv` so `BAL-003` runs on `fishing_game`, rebuild, and play it — criterion 1.2 AC.
