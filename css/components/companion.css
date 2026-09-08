@@ -1,0 +1,83 @@
+/**
+ * Magical companion: floating character + speech bubble.
+ */
+.companion {
+  position: fixed;
+  inset-block-end: var(--space-6);
+  inset-inline-start: var(--space-5);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  z-index: var(--z-companion);
+  max-width: min(85vw, 360px);
+  pointer-events: none;
+}
+
+.companion__figure {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.6rem;
+  flex-shrink: 0;
+  animation: gentle-float 3.2s ease-in-out infinite;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast);
+}
+
+.companion__figure:hover {
+  animation-play-state: paused;
+  transform: translateY(-8px) scale(1.06);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+}
+
+.companion__figure:active {
+  animation-play-state: paused;
+  transform: translateY(-2px) scale(0.94);
+}
+
+.companion__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-round);
+}
+
+.companion__bubble {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  position: relative;
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  transition: opacity var(--transition-base) var(--ease-out-soft), transform var(--transition-base) var(--ease-out-soft);
+  pointer-events: auto;
+}
+
+.companion__bubble--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (max-width: 599px) {
+  .companion {
+    inset-inline-start: var(--space-3);
+    inset-block-end: calc(var(--space-6) + 56px);
+    max-width: 78vw;
+  }
+
+  .companion__figure {
+    width: 64px;
+    height: 64px;
+    font-size: 2rem;
+  }
+}

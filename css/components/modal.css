@@ -1,0 +1,50 @@
+/**
+ * Confirm-dialog modal (e.g. delete-profile). Uses a gentle amber accent —
+ * never red — to keep the "zero frustration" kid-friendly tone.
+ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 70, 52, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: var(--z-modal);
+  animation: fade-in var(--transition-base) ease both;
+}
+
+.modal {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-6);
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  animation: pop var(--transition-slow) ease both;
+  border-top: 8px solid var(--color-warning);
+}
+
+.modal__icon {
+  font-size: var(--font-size-xxl);
+  margin-block-end: var(--space-3);
+  animation: badge-pop 500ms var(--ease-bounce) both;
+}
+
+.modal__title {
+  font-size: var(--font-size-lg);
+  margin-block-end: var(--space-2);
+}
+
+.modal__message {
+  color: var(--color-text-muted);
+  margin-block-end: var(--space-5);
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}

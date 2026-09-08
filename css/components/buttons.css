@@ -1,0 +1,102 @@
+/**
+ * Buttons — primary, secondary, icon-only. All meet the 48px min tap target.
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding-inline: var(--space-5);
+  padding-block: var(--space-3);
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  letter-spacing: var(--tracking-tight);
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast), background-color var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary) 55%, var(--color-primary-dark) 100%);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-contact-md), var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary-dark) 100%);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(var(--lift-md)) scale(0.97);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #8fdcff 0%, var(--color-secondary) 55%, var(--color-secondary-dark) 100%);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-contact-md), var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(var(--lift-md)) scale(0.97);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+.btn-ghost {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+  background: var(--color-surface-tint);
+  border-color: var(--color-primary-light);
+}
+
+.btn-large {
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-lg);
+  padding-inline: var(--space-7);
+}
+
+.btn-icon {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  min-height: var(--tap-min);
+  border-radius: var(--radius-round);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+
+.btn-icon:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px) scale(1.05);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}

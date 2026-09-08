@@ -1,0 +1,100 @@
+/**
+ * Profile-select screen layout.
+ */
+.profile-select {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-7) var(--space-5);
+  gap: var(--space-6);
+  /* "Dawn before the journey" — the same sky hue the map's world opens
+     into, so choosing a profile reads as step one of the trip rather than
+     a generic form screen bolted onto a game. */
+  background: linear-gradient(180deg, var(--color-dawn-sky) 0%, var(--color-surface) 55%);
+  position: relative;
+}
+
+/* Small star-glints, not abstract blobs — echoes the companion's sparkles
+   and the map's night sky instead of a generic decorative shape. Very
+   slow, low-opacity, killed by the global prefers-reduced-motion rule. */
+.profile-select::before,
+.profile-select::after {
+  content: '✦';
+  position: absolute;
+  color: var(--color-star-glow);
+  font-size: 2rem;
+  line-height: 1;
+  opacity: 0.7;
+  pointer-events: none;
+  animation: gentle-float 7s ease-in-out infinite;
+  z-index: 0;
+}
+
+.profile-select::before {
+  inset-inline-start: 8%;
+  inset-block-start: 64px;
+}
+
+.profile-select::after {
+  font-size: 1.25rem;
+  inset-inline-end: 10%;
+  inset-block-start: 200px;
+  animation-delay: -3s;
+}
+
+.profile-select__title {
+  text-align: center;
+  font-size: var(--font-size-hero);
+  letter-spacing: var(--tracking-tight);
+  animation: pop 550ms var(--ease-bounce) both;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-select__subtitle {
+  color: var(--color-text-muted);
+  text-align: center;
+  max-width: 480px;
+  animation: fade-in var(--transition-slow) ease 150ms both;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-select__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 900px;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-select__grid > .card:nth-child(1) {
+  animation-delay: 0ms;
+}
+.profile-select__grid > .card:nth-child(2) {
+  animation-delay: 60ms;
+}
+.profile-select__grid > .card:nth-child(3) {
+  animation-delay: 120ms;
+}
+.profile-select__grid > .card:nth-child(4) {
+  animation-delay: 180ms;
+}
+.profile-select__grid > .card:nth-child(5) {
+  animation-delay: 240ms;
+}
+.profile-select__grid > .card:nth-child(6) {
+  animation-delay: 300ms;
+}
+.profile-select__grid > .card:nth-child(n + 7) {
+  animation-delay: 360ms;
+}
+
+@media (max-width: 599px) {
+  .profile-select__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

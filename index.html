@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>המסע לכוכב א׳</title>
+  <meta name="description" content="משחק לימודי לילדי כיתות א׳-ב׳ - המסע לכוכב א׳" />
+
+  <!--
+    CSS load order matters: reset -> tokens -> base -> animations ->
+    components -> screens. Later files may rely on custom properties and
+    base rules defined earlier.
+  -->
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+
+  <link rel="stylesheet" href="css/components/buttons.css" />
+  <link rel="stylesheet" href="css/components/cards.css" />
+  <link rel="stylesheet" href="css/components/avatar.css" />
+  <link rel="stylesheet" href="css/components/avatar-accessory.css" />
+  <link rel="stylesheet" href="css/components/companion.css" />
+  <link rel="stylesheet" href="css/components/mute-toggle.css" />
+  <link rel="stylesheet" href="css/components/toast.css" />
+  <link rel="stylesheet" href="css/components/modal.css" />
+  <link rel="stylesheet" href="css/components/celebration.css" />
+  <link rel="stylesheet" href="css/components/round-transition.css" />
+
+  <link rel="stylesheet" href="css/screens/profile-select.css" />
+  <link rel="stylesheet" href="css/screens/profile-create.css" />
+  <link rel="stylesheet" href="css/screens/world-map.css" />
+  <link rel="stylesheet" href="css/screens/station-placeholder.css" />
+  <link rel="stylesheet" href="css/screens/letters-station.css" />
+  <link rel="stylesheet" href="css/screens/phonology-station.css" />
+  <link rel="stylesheet" href="css/screens/word-building-station.css" />
+  <link rel="stylesheet" href="css/screens/arithmetic-station.css" />
+  <link rel="stylesheet" href="css/screens/geometry-station.css" />
+  <link rel="stylesheet" href="css/screens/multiplication-prep-station.css" />
+  <link rel="stylesheet" href="css/screens/reading-comprehension-station.css" />
+  <link rel="stylesheet" href="css/screens/my-world.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ScreenManager mounts/unmounts screens here only. -->
+    <main id="screen-root" aria-live="polite"></main>
+    <!-- Persistent layer: MuteToggle, Toast, Modal. Router never touches this. -->
+    <div id="overlay-root"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

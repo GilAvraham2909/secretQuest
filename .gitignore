@@ -1,0 +1,38 @@
+# Secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+dist/
+build/
+.vite/
+coverage/
+
+# Generated content packs (built from content/source/)
+content/build/
+
+# Image-tool scratch output — every final is duplicated into assets/
+generated/
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Claude Code — machine-local, not project config.
+# (.claude/skills/ IS tracked: those are real project skills.)
+.claude/settings.local.json
+.claude/statusline/

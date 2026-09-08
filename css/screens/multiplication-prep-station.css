@@ -1,0 +1,451 @@
+/**
+ * Multiplication-prep station ("הכנה לכפל") — Stage 2's sixth real learning
+ * activity. Reuses design tokens + shared @keyframes (badge-pop, glow-pulse)
+ * from tokens.css / animations.css, mirroring arithmetic-station.css's and
+ * geometry-station.css's structure. Class names are scoped to this station
+ * (.multiplication-prep-station*, .number-tile*, .group-cluster*,
+ * .sequence-chip*) to avoid collisions with the other stations' tiles.
+ *
+ * Two visual shapes share one body: equal-groups clusters of stars, and
+ * skip-counting number-sequence chips. The sequence-row reads left-to-right
+ * even on this RTL page — same documented exception as
+ * arithmetic-station.css's `__equation-text` (normal/expected for numeric
+ * notation; only surrounding Hebrew text/labels follow RTL flow).
+ *
+ * Illustrated scene background: an orchard scene image is set as the
+ * station's background (with graceful onerror fallback to the original
+ * gradient — see the `--fallback-bg` modifier below), mirroring the exact
+ * bgProbe pattern world-map.css/WorldMapScreen.js already use for the map
+ * background. Because the scene art is busy, round content (visual + tile
+ * grid) is wrapped in a translucent `__scene-panel` backing so text/tiles
+ * stay legible over it; see MultiplicationPrepStation.js.
+ */
+
+.multiplication-prep-station {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+  background-image: url('../../assets/images/stations/scenes/multiplication-prep-scene.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Alternate scene image, applied by MultiplicationPrepStation.js's
+   renderShell() on ~50% of mounts for background variety. Placed before
+   --fallback-bg below in source order so that if the alt image fails to
+   load (both classes present), --fallback-bg wins on equal specificity and
+   the gradient still applies correctly. */
+.multiplication-prep-station--scene-alt {
+  background-image: url('../../assets/images/stations/scenes/multiplication-prep-scene-alt.png');
+}
+
+/* Graceful fallback if the scene image fails to load: drop the image and
+   fall back explicitly to the station's original gradient (same pattern as
+   .world-map--fallback-bg in world-map.css). */
+.multiplication-prep-station--fallback-bg {
+  background-image: none;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+}
+
+/* ---- Header: always-visible back button + title + round progress ---- */
+
+.multiplication-prep-station__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  /* Sits directly on the busy scene background (unlike the completion
+     panel, which already opts into --color-surface-alt) — give it the
+     same light translucent backing as __scene-panel so the back button,
+     title and progress dots stay legible over the orchard art. */
+  margin: var(--space-3);
+  background: rgba(255, 248, 238, 0.82);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+.multiplication-prep-station__title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.multiplication-prep-station__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+
+.multiplication-prep-station__progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.multiplication-prep-station__dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.multiplication-prep-station__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+}
+
+.multiplication-prep-station__dot--done {
+  background: var(--color-success);
+}
+
+.multiplication-prep-station__dot--current {
+  /* Multiplication-prep's brand accent is --color-success (growth/grouping
+     theme) — note this is purely a brand-identity reuse of the same token
+     the correct-answer feedback uses; the semantics of "correct = green"
+     elsewhere are untouched. */
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(67, 183, 93, 0.35);
+}
+
+/* ---- Round body ---- */
+
+.multiplication-prep-station__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5) var(--space-7);
+}
+
+/* Translucent backing behind the round's visual + answer tiles, so text and
+   tiles stay legible over the busy orchard scene image while the scene
+   still shows through around the edges. Wraps prompt + visual + grid
+   together (not the whole screen) — see the scenePanel wrapper built in
+   renderRound() in MultiplicationPrepStation.js. Color approximates --color-surface
+   (#fff8ee) at reduced opacity to match this station's cream surface tone. */
+.multiplication-prep-station__scene-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 720px;
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  background: rgba(255, 248, 238, 0.82);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+}
+
+.multiplication-prep-station__prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  animation: fade-in var(--transition-slow) ease both;
+}
+
+.multiplication-prep-station__prompt-lead {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.multiplication-prep-station__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--space-5);
+  justify-content: center;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* ---- Equal-groups visual: bordered cluster boxes, each holding perGroup stars ---- */
+
+.group-cluster-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  max-width: 640px;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.group-cluster {
+  display: flex;
+  flex-flow: row wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 2px;
+  max-width: 132px;
+  padding: var(--space-3);
+  /* Multiplication-prep's brand accent is --color-success — its own light
+     tile tint keeps the cluster box from reading as flat white. */
+  background: var(--tile-tint-multiplication-prep);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+.group-cluster__star {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* ---- Skip-counting visual: sequence chips + "?" chip, read left-to-right ---- */
+
+.sequence-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  max-width: 640px;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+  /* This is a numeric sequence, not Hebrew prose — keep left-to-right
+     reading order even though the surrounding page is RTL, matching
+     arithmetic-station.css's `__equation-text` exception. */
+  direction: ltr;
+}
+
+.sequence-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  height: 64px;
+  padding-inline: var(--space-2);
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.sequence-chip--question {
+  color: var(--color-success-dark);
+  border-color: var(--color-success);
+}
+
+/* ---- Numeric answer tiles ---- */
+
+.number-tile {
+  width: 108px;
+  height: 108px;
+  min-width: var(--tap-primary);
+  min-height: var(--tap-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text);
+  /* Multiplication-prep's brand accent is --color-success — its own light
+     tile tint keeps the idle tile from reading as flat white. */
+  background: var(--tile-tint-multiplication-prep);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  margin-inline: auto;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast),
+    background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.number-tile:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  border-color: var(--color-success);
+}
+
+.number-tile:active:not(:disabled) {
+  transform: translateY(var(--lift-sm)) scale(0.96);
+}
+
+.number-tile:disabled {
+  cursor: default;
+}
+
+.number-tile:disabled:not(.number-tile--correct) {
+  opacity: 0.55;
+}
+
+.number-tile--correct {
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  color: var(--color-text-on-primary);
+  animation: badge-pop var(--transition-slow) var(--ease-bounce) both;
+}
+
+/* Wrong tap: never red. A warm, neutral wiggle plus a background/border
+   change that still communicates "not this one" even when
+   prefers-reduced-motion strips the animation entirely (see base.css). */
+@keyframes number-tile-wiggle {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.number-tile--incorrect {
+  background: var(--color-surface-tint);
+  border-color: var(--color-warning);
+  animation: number-tile-wiggle 480ms ease-in-out;
+}
+
+/* Soft hint glow on the correct tile after a couple of gentle misses — the
+   child still has to tap it themselves. Reuses the shared glow-pulse
+   keyframe (warm-yellow) already defined in animations.css. */
+.number-tile--hint {
+  border-color: var(--color-accent-yellow);
+  animation: glow-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- Completion view ---- */
+
+.multiplication-prep-station__completion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.multiplication-prep-station__completion-emoji {
+  font-size: 4rem;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.multiplication-prep-station__completion-title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.multiplication-prep-station__completion-coins {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-warning-dark);
+}
+
+.multiplication-prep-station__reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  animation: pop 520ms var(--ease-bounce) 150ms both;
+}
+
+.multiplication-prep-station__reward-emoji {
+  font-size: 3rem;
+}
+
+.multiplication-prep-station__reward-label {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.multiplication-prep-station__reward-note {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 599px) {
+  .multiplication-prep-station__prompt-lead {
+    font-size: var(--font-size-lg);
+  }
+
+  .group-cluster {
+    max-width: 108px;
+    padding: var(--space-2);
+  }
+
+  .group-cluster__star {
+    font-size: 1.15rem;
+  }
+
+  .sequence-chip {
+    min-width: 52px;
+    height: 52px;
+    font-size: var(--font-size-xl);
+  }
+
+  .number-tile {
+    width: 92px;
+    height: 92px;
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ---- Decorative companion presence in the orchard scene ---- */
+
+.multiplication-prep-station__companion {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  filter: drop-shadow(0 6px 10px rgba(90, 70, 52, 0.28));
+  animation: gentle-float 3.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: var(--z-base);
+}
+
+.multiplication-prep-station__companion img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 599px) {
+  .multiplication-prep-station__companion {
+    width: 64px;
+    height: 64px;
+    font-size: 2rem;
+  }
+}

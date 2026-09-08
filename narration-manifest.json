@@ -1,0 +1,469 @@
+[
+  {
+    "id": "profile-select-welcome",
+    "text": "מי משחק היום? בחרו פרופיל",
+    "context": "ProfileSelectScreen.js — spoken 250ms after the profile-select screen mounts"
+  },
+  {
+    "id": "profile-select-new-profile-label",
+    "text": "פרופיל חדש",
+    "context": "ProfileSelectScreen.js — label on the \"add profile\" card"
+  },
+  {
+    "id": "profile-select-delete-confirm-title",
+    "text": "למחוק את הפרופיל ?",
+    "context": "ProfileSelectScreen.js — confirm-modal title when tapping a profile card's delete icon",
+    "template": true
+  },
+  {
+    "id": "profile-select-delete-confirm-message",
+    "text": "כל ההתקדמות והפרסים של הפרופיל הזה יימחקו. אפשר תמיד ליצור פרופיל חדש.",
+    "context": "ProfileSelectScreen.js — confirm-modal body for profile deletion"
+  },
+  {
+    "id": "profile-select-delete-confirm-yes",
+    "text": "כן, למחוק",
+    "context": "ProfileSelectScreen.js — confirm-modal confirm button"
+  },
+  {
+    "id": "profile-select-delete-confirm-no",
+    "text": "לא, תשאירו",
+    "context": "ProfileSelectScreen.js — confirm-modal cancel button"
+  },
+  {
+    "id": "profile-select-profile-deleted-toast",
+    "text": "הפרופיל נמחק",
+    "context": "ProfileSelectScreen.js — toast shown after a profile is deleted",
+    "template": true
+  },
+  {
+    "id": "profile-create-welcome",
+    "text": "בואו ניצור פרופיל. איך קוראים לך, ואיזו דמות תרצו?",
+    "context": "ProfileCreateScreen.js — spoken 250ms after the create-profile screen mounts"
+  },
+  {
+    "id": "profile-create-choose-avatar-label",
+    "text": "בחרו דמות",
+    "context": "ProfileCreateScreen.js — heading above the avatar picker grid"
+  },
+  {
+    "id": "profile-create-create-button",
+    "text": "צור פרופיל",
+    "context": "ProfileCreateScreen.js — submit button"
+  },
+  {
+    "id": "profile-create-cancel-button",
+    "text": "ביטול",
+    "context": "ProfileCreateScreen.js — cancel button, back to profile select"
+  },
+  {
+    "id": "profile-create-ready",
+    "text": "יופי! הפרופיל שלך מוכן.",
+    "context": "ProfileCreateScreen.js — spoken immediately after a new profile is created",
+    "template": true
+  },
+  {
+    "id": "map-title",
+    "text": "המסע לכוכב א׳",
+    "context": "WorldMapScreen.js — the game's title, shown top-corner of the map screen"
+  },
+  {
+    "id": "map-my-world-button",
+    "text": "העולם שלי",
+    "context": "WorldMapScreen.js — corner button to the My World / dress-up screen (visible label carries a 🎒 emoji, stripped here)"
+  },
+  {
+    "id": "map-switch-profile-button",
+    "text": "החלף פרופיל",
+    "context": "WorldMapScreen.js — corner button back to profile select (visible label carries a 👤 emoji, stripped here)"
+  },
+  {
+    "id": "map-companion-greeting",
+    "text": "היי! אני החבר הקסום שלך. בוא נבחר תחנה יחד!",
+    "context": "Companion.js — default first greeting 500ms after the map mounts, unless the daily-bonus greeting overrides it (emoji stripped)"
+  },
+  {
+    "id": "map-companion-encouragement-1",
+    "text": "איזה כיף שאתה כאן! בחר תחנה ובואו נלמד ביחד!",
+    "context": "Companion.js — one of 5 random idle-encouragement lines, spoken every ~25s of inactivity on the map or when the companion figure is tapped (emoji stripped)"
+  },
+  {
+    "id": "map-companion-encouragement-2",
+    "text": "אתה יכול לבחור כל תחנה שבא לך, אין תחנות אסורות!",
+    "context": "Companion.js — idle-encouragement line 2/5"
+  },
+  {
+    "id": "map-companion-encouragement-3",
+    "text": "אני כאן איתך תמיד. קדימה, לאן נטוס עכשיו?",
+    "context": "Companion.js — idle-encouragement line 3/5"
+  },
+  {
+    "id": "map-companion-encouragement-4",
+    "text": "כל תחנה מביאה הפתעה חדשה! רוצה לנסות?",
+    "context": "Companion.js — idle-encouragement line 4/5"
+  },
+  {
+    "id": "map-companion-encouragement-5",
+    "text": "איזה כיף ללמוד ביחד! אתה עושה עבודה נהדרת.",
+    "context": "Companion.js — idle-encouragement line 5/5"
+  },
+  {
+    "id": "map-daily-bonus",
+    "text": "איזה כיף שחזרת! הנה מתנה קטנה בשבילך — {bonus} מטבעות",
+    "context": "WorldMapScreen.js — companion's greeting override on the first map visit of a calendar day (emoji stripped)",
+    "template": true
+  },
+  {
+    "id": "station-name-letters",
+    "text": "אותיות",
+    "context": "categories.js CategoryLabelsHe — station name, shown on its map node and as the station screen's title"
+  },
+  {
+    "id": "station-name-phonology",
+    "text": "צלילים",
+    "context": "categories.js CategoryLabelsHe — station name (Phonology station)"
+  },
+  {
+    "id": "station-name-syllables-words",
+    "text": "הברות ומילים",
+    "context": "categories.js CategoryLabelsHe — station name (Word-Building station)"
+  },
+  {
+    "id": "station-name-arithmetic",
+    "text": "חשבון",
+    "context": "categories.js CategoryLabelsHe — station name (Arithmetic station)"
+  },
+  {
+    "id": "station-name-geometry",
+    "text": "צורות",
+    "context": "categories.js CategoryLabelsHe — station name (Geometry station)"
+  },
+  {
+    "id": "station-name-multiplication-prep",
+    "text": "הכנה לכפל",
+    "context": "categories.js CategoryLabelsHe — station name (Multiplication-Prep station)"
+  },
+  {
+    "id": "station-name-reading-comprehension",
+    "text": "הבנת הנקרא",
+    "context": "categories.js CategoryLabelsHe — station name (Reading-Comprehension station)"
+  },
+  {
+    "id": "station-back-to-map",
+    "text": "בחזרה למפה",
+    "context": "Shared back button — identical text in all 7 station header bars plus MyWorldScreen.js and PlaceholderStationScreen.js"
+  },
+  {
+    "id": "station-golden-round-badge",
+    "text": "סיבוב מוזהב! מטבע כפול!",
+    "context": "Shared badge shown during a golden round (1/6 chance, double coins) — identical across all 7 stations (⭐ emoji stripped)"
+  },
+  {
+    "id": "station-retry-encouragement-1",
+    "text": "כמעט! בואו ננסה שוב",
+    "context": "Shared ENCOURAGEMENTS array, identical across all 7 stations — spoken after a near-miss/first wrong-ish attempt (this game has no fail state, just a gentle nudge)"
+  },
+  {
+    "id": "station-retry-encouragement-2",
+    "text": "כמעט הצלחת!",
+    "context": "Shared ENCOURAGEMENTS array, entry 2/3, identical across all 7 stations"
+  },
+  {
+    "id": "station-retry-encouragement-3",
+    "text": "אפשר לנסות שוב, אני מאמין/ה בך!",
+    "context": "Shared ENCOURAGEMENTS array, entry 3/3, identical across all 7 stations"
+  },
+  {
+    "id": "station-complete-with-reward",
+    "text": "סיימת את התחנה! קיבלת {rewardName}!",
+    "context": "Identical spokenMessage pattern in all 7 stations' onComplete handler, passed to Celebration.js — used when a reward was earned this session",
+    "template": true
+  },
+  {
+    "id": "station-complete-no-reward",
+    "text": "סיימת את התחנה! עוד כוכבים בשבילך!",
+    "context": "Identical spokenMessage pattern in all 7 stations' onComplete handler — used when no new reward dropped this session (still earned coins)"
+  },
+  {
+    "id": "celebration-title",
+    "text": "סיימת את התחנה!",
+    "context": "Celebration.js renderCelebration() — visual panel title (the two spoken entries above already combine this with the reward line for the actual TTS call; kept separate here since it's also independently visible on-screen)"
+  },
+  {
+    "id": "celebration-coins-earned",
+    "text": "אספת {count} מטבעות!",
+    "context": "Celebration.js — visual coin-count line (🪙 emoji stripped)",
+    "template": true
+  },
+  {
+    "id": "celebration-reward-received",
+    "text": "קיבלת פריט חדש: {rewardName}!",
+    "context": "Celebration.js — visual reward-name line, shown only when a reward was earned",
+    "template": true
+  },
+  {
+    "id": "celebration-no-reward-note",
+    "text": "עוד כוכבים בשבילך!",
+    "context": "Celebration.js — visual note shown instead of a reward line when none dropped this session (✨ emoji stripped)"
+  },
+  {
+    "id": "celebration-back-to-map-button",
+    "text": "חזרה למפה",
+    "context": "Celebration.js — the panel's own back button (note: slightly different wording than the in-station header's \"בחזרה למפה\")"
+  },
+  {
+    "id": "arithmetic-prompt-lead",
+    "text": "כמה זה?",
+    "context": "ArithmeticStation.js — static visual lead-in above each round's number problem"
+  },
+  {
+    "id": "multiplication-prep-prompt-lead-groups",
+    "text": "כמה כוכבים יש בסך הכל?",
+    "context": "MultiplicationPrepStation.js — spoken/visual lead-in for \"equal groups\" round type"
+  },
+  {
+    "id": "multiplication-prep-prompt-lead-sequence",
+    "text": "מה המספר הבא ברצף?",
+    "context": "MultiplicationPrepStation.js — spoken/visual lead-in for \"skip-counting sequence\" round type"
+  },
+  {
+    "id": "word-building-fill-blank-prompt",
+    "text": "השלימו את המילה",
+    "context": "WordBuildingStation.js — prompt for the original fill-in-blank round type (even roundIndex)"
+  },
+  {
+    "id": "word-building-assemble-intro",
+    "text": "המילה הזו איבדה את הדרך הביתה בלילה. עזרו לה לחזור, אות אחרי אות, בסדר הנכון",
+    "context": "WordBuildingStation.js — spoken intro for the \"lost word at night\" assemble round type (odd roundIndex); the on-screen visual text is a differently-worded, longer version (ASSEMBLE_INTRO_TEXT) kept separate in code for reading vs. hearing"
+  },
+  {
+    "id": "letters-affirmation-1",
+    "text": "כל הכבוד!",
+    "context": "LettersStation.js AFFIRMATIONS, 1/5 — spoken on a correct tap"
+  },
+  {
+    "id": "letters-affirmation-2",
+    "text": "מצוין!",
+    "context": "LettersStation.js AFFIRMATIONS, 2/5"
+  },
+  {
+    "id": "letters-affirmation-3",
+    "text": "נהדר!",
+    "context": "LettersStation.js AFFIRMATIONS, 3/5"
+  },
+  {
+    "id": "letters-affirmation-4",
+    "text": "וואו, איזה כיף!",
+    "context": "LettersStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "letters-affirmation-5",
+    "text": "פגעת בול!",
+    "context": "LettersStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "phonology-affirmation-1",
+    "text": "יופי!",
+    "context": "PhonologyStation.js AFFIRMATIONS, 1/5"
+  },
+  {
+    "id": "phonology-affirmation-2",
+    "text": "בול פגיעה!",
+    "context": "PhonologyStation.js AFFIRMATIONS, 2/5"
+  },
+  {
+    "id": "phonology-affirmation-3",
+    "text": "כל הכבוד!",
+    "context": "PhonologyStation.js AFFIRMATIONS, 3/5 (identical text to letters-affirmation-1, kept as a separate entry — see notes)"
+  },
+  {
+    "id": "phonology-affirmation-4",
+    "text": "איזה אוזן חדה!",
+    "context": "PhonologyStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "phonology-affirmation-5",
+    "text": "את/ה כוכב/ת!",
+    "context": "PhonologyStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "arithmetic-affirmation-1",
+    "text": "כל הכבוד, חישבת נכון!",
+    "context": "ArithmeticStation.js AFFIRMATIONS, 1/5"
+  },
+  {
+    "id": "arithmetic-affirmation-2",
+    "text": "מצוין, זה בדיוק המספר!",
+    "context": "ArithmeticStation.js AFFIRMATIONS, 2/5"
+  },
+  {
+    "id": "arithmetic-affirmation-3",
+    "text": "איזה חשבון מעולה!",
+    "context": "ArithmeticStation.js AFFIRMATIONS, 3/5"
+  },
+  {
+    "id": "arithmetic-affirmation-4",
+    "text": "איזה חשבון חכם!",
+    "context": "ArithmeticStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "arithmetic-affirmation-5",
+    "text": "ניצחת את המספר!",
+    "context": "ArithmeticStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "geometry-affirmation-1",
+    "text": "כל הכבוד, זיהית נכון!",
+    "context": "GeometryStation.js AFFIRMATIONS, 1/5"
+  },
+  {
+    "id": "geometry-affirmation-2",
+    "text": "מצוין, זאת הצורה הנכונה!",
+    "context": "GeometryStation.js AFFIRMATIONS, 2/5"
+  },
+  {
+    "id": "geometry-affirmation-3",
+    "text": "איזה זיהוי מעולה!",
+    "context": "GeometryStation.js AFFIRMATIONS, 3/5"
+  },
+  {
+    "id": "geometry-affirmation-4",
+    "text": "עין חדה לצורות!",
+    "context": "GeometryStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "geometry-affirmation-5",
+    "text": "זיהוי מושלם!",
+    "context": "GeometryStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "multiplication-prep-affirmation-1",
+    "text": "כל הכבוד, חישבת נכון!",
+    "context": "MultiplicationPrepStation.js AFFIRMATIONS, 1/5 (identical text to arithmetic-affirmation-1)"
+  },
+  {
+    "id": "multiplication-prep-affirmation-2",
+    "text": "מצוין, זה בדיוק המספר!",
+    "context": "MultiplicationPrepStation.js AFFIRMATIONS, 2/5 (identical text to arithmetic-affirmation-2)"
+  },
+  {
+    "id": "multiplication-prep-affirmation-3",
+    "text": "איזה חישוב מעולה!",
+    "context": "MultiplicationPrepStation.js AFFIRMATIONS, 3/5"
+  },
+  {
+    "id": "multiplication-prep-affirmation-4",
+    "text": "איזה ראש למספרים!",
+    "context": "MultiplicationPrepStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "multiplication-prep-affirmation-5",
+    "text": "דילגת נכון!",
+    "context": "MultiplicationPrepStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "reading-comprehension-affirmation-1",
+    "text": "כל הכבוד, הבנת נכון!",
+    "context": "ReadingComprehensionStation.js AFFIRMATIONS, 1/5"
+  },
+  {
+    "id": "reading-comprehension-affirmation-2",
+    "text": "מצוין, זאת התשובה הנכונה!",
+    "context": "ReadingComprehensionStation.js AFFIRMATIONS, 2/5"
+  },
+  {
+    "id": "reading-comprehension-affirmation-3",
+    "text": "איזו הבנה מעולה!",
+    "context": "ReadingComprehensionStation.js AFFIRMATIONS, 3/5"
+  },
+  {
+    "id": "reading-comprehension-affirmation-4",
+    "text": "איזו הבנה חדה!",
+    "context": "ReadingComprehensionStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "reading-comprehension-affirmation-5",
+    "text": "קראת וניצחת!",
+    "context": "ReadingComprehensionStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "word-building-affirmation-1",
+    "text": "השלמת את המילה!",
+    "context": "WordBuildingStation.js AFFIRMATIONS, 1/5"
+  },
+  {
+    "id": "word-building-affirmation-2",
+    "text": "איזה כיף, בול!",
+    "context": "WordBuildingStation.js AFFIRMATIONS, 2/5"
+  },
+  {
+    "id": "word-building-affirmation-3",
+    "text": "קריאה מעולה!",
+    "context": "WordBuildingStation.js AFFIRMATIONS, 3/5"
+  },
+  {
+    "id": "word-building-affirmation-4",
+    "text": "וואו, איזו הצלחה!",
+    "context": "WordBuildingStation.js AFFIRMATIONS, 4/5"
+  },
+  {
+    "id": "word-building-affirmation-5",
+    "text": "יאלה, קדימה!",
+    "context": "WordBuildingStation.js AFFIRMATIONS, 5/5"
+  },
+  {
+    "id": "my-world-title",
+    "text": "הדמות שלי והעולם שלי",
+    "context": "MyWorldScreen.js — screen h1 title"
+  },
+  {
+    "id": "my-world-character-section-title",
+    "text": "הדמות שלי",
+    "context": "MyWorldScreen.js — \"My Character\" section heading (outfits/accessories)"
+  },
+  {
+    "id": "my-world-outfits-label",
+    "text": "בגדים",
+    "context": "MyWorldScreen.js — outfits grid heading"
+  },
+  {
+    "id": "my-world-accessories-label",
+    "text": "אביזרים",
+    "context": "MyWorldScreen.js — accessories grid heading"
+  },
+  {
+    "id": "my-world-nothing-equipped",
+    "text": "עדיין לא לובשים כלום — המשיכו לשחק בתחנות כדי לגלות פריטים!",
+    "context": "MyWorldScreen.js — empty-state note when no outfit/accessory is equipped yet"
+  },
+  {
+    "id": "my-world-world-section-title",
+    "text": "העולם שלי",
+    "context": "MyWorldScreen.js — \"My World\" section heading (furniture/room)"
+  },
+  {
+    "id": "my-world-furniture-label",
+    "text": "רהיטים",
+    "context": "MyWorldScreen.js — furniture grid heading"
+  },
+  {
+    "id": "my-world-room-label",
+    "text": "החדר שלי",
+    "context": "MyWorldScreen.js — room-preview heading"
+  },
+  {
+    "id": "my-world-room-empty",
+    "text": "החדר עדיין ריק — הניחו רהיטים כדי לקשט אותו!",
+    "context": "MyWorldScreen.js — empty-state message when no furniture is placed in the room"
+  },
+  {
+    "id": "my-world-item-not-owned-caption",
+    "text": "עוד לא נמצא",
+    "context": "MyWorldScreen.js — small caption on a locked (not-yet-earned) reward card"
+  },
+  {
+    "id": "my-world-item-locked-toast",
+    "text": "עוד לא מצאת את זה — המשיכו לשחק בתחנות!",
+    "context": "MyWorldScreen.js — toast shown when tapping a locked/not-yet-earned reward card"
+  }
+]

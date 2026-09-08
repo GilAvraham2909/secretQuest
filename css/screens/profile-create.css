@@ -1,0 +1,70 @@
+/**
+ * Profile-create screen layout.
+ */
+.profile-create {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-7) var(--space-5);
+  gap: var(--space-5);
+  background: linear-gradient(180deg, var(--color-dawn-sky) 0%, var(--color-surface) 55%);
+}
+
+.profile-create h1 {
+  text-align: center;
+  font-size: var(--font-size-hero);
+  letter-spacing: var(--tracking-tight);
+  animation: pop 550ms var(--ease-bounce) both;
+}
+
+.profile-create__panel {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-lg);
+  padding: var(--space-6);
+  max-width: 460px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: slide-up var(--transition-slow) var(--ease-out-soft) 100ms both;
+}
+
+.profile-create__label {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+}
+
+.profile-create__input {
+  width: 100%;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--font-size-md);
+  text-align: start;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.profile-create__input:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.18);
+}
+
+.profile-create__hint {
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  animation: slide-up var(--transition-base) ease both;
+}
+
+.profile-create__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}

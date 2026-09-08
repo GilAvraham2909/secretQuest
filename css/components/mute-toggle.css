@@ -1,0 +1,31 @@
+/**
+ * Persistent floating mute/unmute button — lives in #overlay-root.
+ */
+.mute-toggle {
+  position: fixed;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  z-index: var(--z-overlay);
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+}
+
+.mute-toggle:hover {
+  transform: scale(1.06);
+}
+
+.mute-toggle:active {
+  transform: scale(0.94);
+}
+
+.mute-toggle[aria-pressed='true'] {
+  background: var(--color-surface-tint);
+}

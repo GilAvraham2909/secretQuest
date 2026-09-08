@@ -1,0 +1,419 @@
+/**
+ * Arithmetic station ("חשבון") — Stage 2's fourth real learning activity.
+ * Reuses design tokens + shared @keyframes (badge-pop, glow-pulse) from
+ * tokens.css / animations.css, mirroring word-building-station.css's
+ * structure. Class names are scoped to this station (.arithmetic-station*,
+ * .answer-tile*) to avoid collisions with the other stations' tiles, since
+ * this station's visual is a star-count equation rather than bare glyphs
+ * or letter-box tiles. RTL logical properties throughout — note the
+ * equation itself reads left-to-right numerically even on this RTL page,
+ * which is normal/expected for math notation; only the surrounding Hebrew
+ * text/labels follow RTL flow.
+ */
+
+.arithmetic-station {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+  background-image: url('../../assets/images/stations/scenes/arithmetic-scene.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Alternate scene image, applied by ArithmeticStation.js's renderShell() on
+   ~50% of mounts for background variety. Placed before --fallback-bg below
+   in source order so that if the alt image fails to load (both classes
+   present), --fallback-bg wins on equal specificity and the gradient still
+   applies correctly. */
+.arithmetic-station--scene-alt {
+  background-image: url('../../assets/images/stations/scenes/arithmetic-scene-alt.png');
+}
+
+/* If the illustrated scene image fails to load, fall back to the original
+   plain gradient (see js/screens/station/arithmetic/ArithmeticStation.js'
+   bgProbe, which adds this class on Image() error — mirrors the same
+   pattern already used by .world-map--fallback-bg in world-map.css). */
+.arithmetic-station--fallback-bg {
+  background-image: none;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+}
+
+/* ---- Header: always-visible back button + title + round progress ---- */
+
+.arithmetic-station__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  /* The header sits directly on the illustrated scene background (unlike
+     the round body, which gets its own opaque __scene-panel below) — a
+     light translucent backing keeps the title/progress text legible over
+     a busy image without hiding the scene entirely. */
+  background: rgba(255, 248, 238, 0.72);
+  box-shadow: var(--shadow-sm);
+}
+
+.arithmetic-station__title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.arithmetic-station__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+
+.arithmetic-station__progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.arithmetic-station__dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.arithmetic-station__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+}
+
+.arithmetic-station__dot--done {
+  background: var(--color-success);
+}
+
+.arithmetic-station__dot--current {
+  /* Arithmetic's brand accent is --color-accent-yellow (sunshine — ties to
+     the star-count visual). */
+  background: var(--color-accent-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 199, 44, 0.4);
+}
+
+/* ---- Round body ---- */
+
+.arithmetic-station__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5) var(--space-7);
+}
+
+/* Backing panel behind the round's content (star equation + tiles) so text
+   and tiles stay legible over the busy illustrated scene background, while
+   the scene stays visible around the edges of the screen. Mirrors the
+   rgba tone of --color-surface (#fff8ee). */
+.arithmetic-station__scene-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 720px;
+  padding: var(--space-6) var(--space-5);
+  background: rgba(255, 248, 238, 0.82);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+}
+
+.arithmetic-station__prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  animation: fade-in var(--transition-slow) ease both;
+}
+
+.arithmetic-station__prompt-lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+/* ---- Star equation: two star groups + operator/equals/question-mark ---- */
+
+.arithmetic-station__equation {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  max-width: 640px;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.arithmetic-station__stars {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 2px;
+  max-width: 220px;
+}
+
+/* Modest star size (smaller than the main answer/letter tiles) so up to 10
+   stars wrap comfortably in one group at any breakpoint. */
+.arithmetic-station__star {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.arithmetic-station__operator,
+.arithmetic-station__question-mark {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.arithmetic-station__question-mark {
+  /* Darker gold rather than the flat accent yellow, for legibility against
+     the cream background (mirrors how other stations use their own
+     "-dark" accent variant for prompt/target text). */
+  color: var(--color-accent-yellow-dark);
+}
+
+.arithmetic-station__equation-text {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: var(--tracking-tight);
+  /* This is math notation, not Hebrew prose — keep left-to-right digit/operator
+     order even though the surrounding page is RTL. */
+  direction: ltr;
+}
+
+.arithmetic-station__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--space-5);
+  justify-content: center;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* ---- Numeric answer tiles ---- */
+
+.answer-tile {
+  width: 108px;
+  height: 108px;
+  min-width: var(--tap-primary);
+  min-height: var(--tap-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text);
+  /* Arithmetic's brand accent is --color-accent-yellow — its own light tile
+     tint keeps the idle tile from reading as flat white. */
+  background: var(--tile-tint-arithmetic);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  margin-inline: auto;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast),
+    background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.answer-tile:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  border-color: var(--color-accent-yellow);
+}
+
+.answer-tile:active:not(:disabled) {
+  transform: translateY(var(--lift-sm)) scale(0.96);
+}
+
+.answer-tile:disabled {
+  cursor: default;
+}
+
+.answer-tile:disabled:not(.answer-tile--correct) {
+  opacity: 0.55;
+}
+
+.answer-tile--correct {
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  color: var(--color-text-on-primary);
+  animation: badge-pop var(--transition-slow) var(--ease-bounce) both;
+}
+
+/* Wrong tap: never red. A warm, neutral wiggle plus a background/border
+   change that still communicates "not this one" even when
+   prefers-reduced-motion strips the animation entirely (see base.css). */
+@keyframes answer-tile-wiggle {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.answer-tile--incorrect {
+  background: var(--color-surface-tint);
+  border-color: var(--color-warning);
+  animation: answer-tile-wiggle 480ms ease-in-out;
+}
+
+/* Soft hint glow on the correct tile after a couple of gentle misses — the
+   child still has to tap it themselves. Reuses the shared glow-pulse
+   keyframe (warm-yellow) already defined in animations.css. */
+.answer-tile--hint {
+  border-color: var(--color-accent-yellow);
+  animation: glow-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- Completion view ---- */
+
+.arithmetic-station__completion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.arithmetic-station__completion-emoji {
+  font-size: 4rem;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.arithmetic-station__completion-title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.arithmetic-station__completion-coins {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-warning-dark);
+}
+
+.arithmetic-station__reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  animation: pop 520ms var(--ease-bounce) 150ms both;
+}
+
+.arithmetic-station__reward-emoji {
+  font-size: 3rem;
+}
+
+.arithmetic-station__reward-label {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.arithmetic-station__reward-note {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+/* ---- Decorative companion presence in the scene ----
+   Purely ornamental (aria-hidden, no click handler) — mirrors the sizing/
+   shadow/gentle-float treatment of .companion__figure in
+   css/components/companion.css, but pinned inside this station's own
+   corner rather than the persistent world-map companion widget. */
+.arithmetic-station__companion {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  pointer-events: none;
+  animation: gentle-float 3.6s ease-in-out infinite;
+  z-index: var(--z-base);
+}
+
+.arithmetic-station__companion img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-round);
+}
+
+@media (max-width: 599px) {
+  .arithmetic-station__star {
+    font-size: 1.15rem;
+  }
+
+  .arithmetic-station__stars {
+    max-width: 170px;
+  }
+
+  .arithmetic-station__operator,
+  .arithmetic-station__question-mark {
+    font-size: var(--font-size-xl);
+  }
+
+  .arithmetic-station__equation-text {
+    font-size: var(--font-size-md);
+  }
+
+  .answer-tile {
+    width: 92px;
+    height: 92px;
+    font-size: var(--font-size-xl);
+  }
+
+  .arithmetic-station__companion {
+    width: 64px;
+    height: 64px;
+    font-size: 1.8rem;
+  }
+}

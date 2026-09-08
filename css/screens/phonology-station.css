@@ -1,0 +1,356 @@
+/**
+ * Phonology station ("צלילים") — Stage 2's second real learning activity.
+ * Reuses design tokens + shared @keyframes (badge-pop, glow-pulse) from
+ * tokens.css / animations.css, mirroring letters-station.css's structure.
+ * Class names are scoped to this station (.phonology-station*, .word-tile*)
+ * to avoid collisions with the letters station's tiles, since these tiles
+ * show an emoji + word rather than a bare glyph. RTL logical properties
+ * throughout.
+ */
+
+.phonology-station {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* Illustrated scene background (see bgProbe in PhonologyStation.js), with
+     this gradient kept as the visual fallback if the image ever fails to
+     load — see .phonology-station--fallback-bg below, which restates it
+     explicitly. Mirrors the world-map background pattern (world-map.css /
+     WorldMapScreen.js). */
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+  background-image: url('../../assets/images/stations/scenes/phonology-scene.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Alternate scene image, applied by PhonologyStation.js's renderShell() on
+   ~50% of mounts for background variety. Placed before --fallback-bg below
+   in source order so that if the alt image fails to load (both classes
+   present), --fallback-bg wins on equal specificity and the gradient still
+   applies correctly. */
+.phonology-station--scene-alt {
+  background-image: url('../../assets/images/stations/scenes/phonology-scene-alt.png');
+}
+
+.phonology-station--fallback-bg {
+  background-image: none;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+}
+
+/* ---- Header: always-visible back button + title + round progress ---- */
+
+.phonology-station__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  margin: var(--space-3) var(--space-4) 0;
+  /* The title text and progress dots have no opaque background of their
+     own (unlike the back button, which is already a solid btn-ghost), so
+     they'd sit unreadably on the busy scene image without this backing. */
+  background: rgba(255, 248, 238, 0.72);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.phonology-station__title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.phonology-station__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+
+.phonology-station__progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.phonology-station__dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.phonology-station__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+}
+
+.phonology-station__dot--done {
+  background: var(--color-success);
+}
+
+.phonology-station__dot--current {
+  /* Phonology's brand accent is --color-accent-pink (berry pink). */
+  background: var(--color-accent-pink);
+  box-shadow: 0 0 0 3px rgba(255, 79, 163, 0.35);
+}
+
+/* ---- Round body ---- */
+
+.phonology-station__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-5) var(--space-7);
+}
+
+/* Semi-translucent backing behind the round's prompt + tile grid, so text
+   and tiles stay legible over the busy illustrated scene while still
+   letting the scene show through at the edges. Cream tone matches
+   --color-surface (#fff8ee). */
+.phonology-station__scene-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 800px;
+  padding: var(--space-6) var(--space-5);
+  background: rgba(255, 248, 238, 0.86);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+}
+
+.phonology-station__prompt {
+  text-align: center;
+  animation: fade-in var(--transition-slow) ease both;
+}
+
+.phonology-station__prompt-lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+  margin-block-end: var(--space-2);
+}
+
+.phonology-station__prompt-target {
+  font-size: var(--font-size-hero);
+  font-weight: 800;
+  color: var(--color-accent-pink-dark);
+  letter-spacing: var(--tracking-tight);
+}
+
+.phonology-station__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-5);
+  justify-content: center;
+  max-width: 720px;
+  width: 100%;
+}
+
+/* ---- Word tiles: emoji (dominant) + word label beneath ---- */
+
+.word-tile {
+  width: 128px;
+  height: 128px;
+  min-width: var(--tap-primary);
+  min-height: var(--tap-primary);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  color: var(--color-text);
+  /* Phonology's brand accent is --color-accent-pink — its own light tile
+     tint keeps the idle tile from reading as flat white. */
+  background: var(--tile-tint-phonology);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  margin-inline: auto;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast),
+    background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.word-tile__emoji {
+  font-size: 2.75rem;
+  line-height: 1;
+}
+
+.word-tile__label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.word-tile:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  border-color: var(--color-accent-pink);
+}
+
+.word-tile:active:not(:disabled) {
+  transform: translateY(var(--lift-sm)) scale(0.96);
+}
+
+.word-tile:disabled {
+  cursor: default;
+}
+
+.word-tile:disabled:not(.word-tile--correct) {
+  opacity: 0.55;
+}
+
+.word-tile--correct {
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  color: var(--color-text-on-primary);
+  animation: badge-pop var(--transition-slow) var(--ease-bounce) both;
+}
+
+/* Wrong tap: never red. A warm, neutral wiggle plus a background/border
+   change that still communicates "not this one" even when
+   prefers-reduced-motion strips the animation entirely (see base.css). */
+@keyframes word-tile-wiggle {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.word-tile--incorrect {
+  background: var(--color-surface-tint);
+  border-color: var(--color-warning);
+  animation: word-tile-wiggle 480ms ease-in-out;
+}
+
+/* Soft hint glow on the correct tile after a couple of gentle misses — the
+   child still has to tap it themselves. Reuses the shared glow-pulse
+   keyframe (warm-yellow) already defined in animations.css. */
+.word-tile--hint {
+  border-color: var(--color-accent-yellow);
+  animation: glow-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- Completion view ---- */
+
+.phonology-station__completion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.phonology-station__completion-emoji {
+  font-size: 4rem;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.phonology-station__completion-title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.phonology-station__completion-coins {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-warning-dark);
+}
+
+.phonology-station__reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  animation: pop 520ms var(--ease-bounce) 150ms both;
+}
+
+.phonology-station__reward-emoji {
+  font-size: 3rem;
+}
+
+.phonology-station__reward-label {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.phonology-station__reward-note {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+/* ---- Decorative companion, small presence in the illustrated scene ---- */
+
+.phonology-station__companion {
+  position: absolute;
+  inset-inline-end: var(--space-5);
+  inset-block-end: var(--space-5);
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Sizes the ✨ fallback glyph if the companion image ever fails to load
+     (mirrors .companion__figure's fallback sizing in companion.css). */
+  font-size: 2.6rem;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(90, 70, 52, 0.28));
+  animation: gentle-float 3.4s ease-in-out infinite;
+}
+
+.phonology-station__companion img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 599px) {
+  .word-tile {
+    width: 108px;
+    height: 108px;
+  }
+
+  .word-tile__emoji {
+    font-size: 2.25rem;
+  }
+
+  .phonology-station__prompt-target {
+    font-size: var(--font-size-xxl);
+  }
+
+  .phonology-station__companion {
+    width: 64px;
+    height: 64px;
+  }
+}

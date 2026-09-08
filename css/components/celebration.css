@@ -1,0 +1,220 @@
+/**
+ * @file celebration.css
+ * Shared "station complete" celebration panel (js/juice/Celebration.js),
+ * used by every learning station's renderCompletion(). A choreographed,
+ * staggered CSS entrance: companion hops in, title pops, coins fade in
+ * while the JS count-up animates the number, reward lands with a spin,
+ * back button settles in last. Purely visual — the back button is always
+ * clickable regardless of animation state (see Celebration.js).
+ *
+ * All keyframes/durations here are automatically neutralized by the global
+ * prefers-reduced-motion rule in css/base.css (animation-duration collapses
+ * to 0.01ms), so no redundant duplicate rule is needed in this file.
+ */
+.celebration-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+/* A moving, "alive" background for the win moment — a softly-blurred
+   rainbow ring that keeps rotating behind the panel the whole time it's
+   shown, rather than the flat solid card that used to sit here. Kept
+   BEHIND the panel (not as the panel's own background) and blurred, so it
+   reads as festive light spilling around the card rather than competing
+   with the actual text/reward content for contrast — a moving gradient
+   directly under white/dark text would hurt readability as it shifts,
+   which matters more here than in a purely decorative spot. */
+.celebration-panel::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-primary),
+    var(--color-accent-pink),
+    var(--color-accent-purple),
+    var(--color-accent-yellow),
+    var(--color-success),
+    var(--color-secondary),
+    var(--color-primary)
+  );
+  filter: blur(20px);
+  opacity: 0.85;
+  animation: celebration-glow-spin 5s linear infinite;
+}
+
+.celebration-companion {
+  width: 96px;
+  height: 96px;
+  opacity: 0;
+  animation: celebration-hop-in 600ms var(--ease-bounce) 150ms both;
+}
+.celebration-companion-inner,
+.celebration-companion-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.celebration-title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  opacity: 0;
+  animation: pop 500ms var(--ease-bounce) 500ms both;
+}
+
+.celebration-coins {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-warning-dark);
+  opacity: 0;
+  animation: fade-in var(--transition-slow) ease 850ms both;
+}
+.celebration-coins-number {
+  font-variant-numeric: tabular-nums;
+}
+
+.celebration-reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  animation: celebration-reward-land 650ms var(--ease-bounce) 1400ms both;
+}
+.celebration-reward-emoji {
+  font-size: 3rem;
+}
+.celebration-reward-label {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+.celebration-reward-note {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+  opacity: 0;
+  animation: fade-in var(--transition-slow) ease 1400ms both;
+}
+
+.celebration-back-btn {
+  opacity: 0;
+  animation: fade-in var(--transition-base) ease 2000ms both;
+}
+
+@keyframes celebration-hop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes celebration-reward-land {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.4) rotate(-8deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(4px) scale(1.08) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes celebration-glow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Victory cast: the fairy/alien/star/party-popper that jump around
+   the panel announcing the win (js/juice/Celebration.js's
+   spawnVictoryCast). Positioned just outside the panel's own corners
+   (negative insets), each on a distinct jump rhythm/delay so the group
+   reads as an excited little crowd rather than one thing repeated 4x. ---- */
+.celebration-cast {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.celebration-cast-member {
+  position: absolute;
+  font-size: 2.4rem;
+  opacity: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+  animation: celebration-cast-jump 650ms var(--ease-bounce) infinite;
+}
+
+.celebration-cast-member--tl {
+  inset-inline-start: -8%;
+  inset-block-start: -6%;
+  animation-delay: 200ms;
+}
+.celebration-cast-member--tr {
+  inset-inline-end: -8%;
+  inset-block-start: -4%;
+  animation-delay: 420ms;
+}
+.celebration-cast-member--bl {
+  inset-inline-start: -6%;
+  inset-block-end: -6%;
+  animation-delay: 60ms;
+}
+.celebration-cast-member--br {
+  inset-inline-end: -6%;
+  inset-block-end: -8%;
+  animation-delay: 320ms;
+}
+
+@keyframes celebration-cast-jump {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-22px) scale(1.05) rotate(-8deg);
+  }
+  75% {
+    transform: translateY(0) scale(1) rotate(6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1) rotate(0deg);
+  }
+}
+
+@media (max-width: 599px) {
+  .celebration-cast-member {
+    font-size: 1.8rem;
+  }
+}

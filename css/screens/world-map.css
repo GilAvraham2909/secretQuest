@@ -1,0 +1,677 @@
+/**
+ * World map screen: full-viewport scene with positioned station nodes.
+ */
+.world-map {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background-image: url('../../assets/images/ui/map-background.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Twilight/night alternate — same composition (mountains, winding path,
+   floating island), different sky mood. Declared before --fallback-bg so
+   that class still wins on equal specificity if the image is ever missing. */
+.world-map--scene-alt {
+  background-image: url('../../assets/images/ui/map-background-alt.png');
+}
+
+.world-map--fallback-bg {
+  background-image: none;
+  background: linear-gradient(160deg, #bfe9ff 0%, #dff6ff 35%, #fff3d6 70%, #ffe1c4 100%);
+}
+
+.world-map__hud {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-start: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-md);
+  z-index: var(--z-base);
+  animation: pop 480ms var(--ease-bounce) both;
+}
+
+.world-map__hud-name {
+  font-weight: 700;
+}
+
+.world-map__hud-coins {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-warning-dark);
+  font-weight: 700;
+}
+
+.world-map__switch-btn {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-start: calc(var(--space-4) + 260px);
+}
+
+/* Sits right next to the switch-profile button, same HUD row. */
+.world-map__my-world-btn {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-start: calc(var(--space-4) + 260px + 190px);
+}
+
+@media (max-width: 1024px) {
+  .world-map__switch-btn {
+    inset-block-start: auto;
+    inset-block-end: var(--space-4);
+    inset-inline-start: var(--space-4);
+  }
+
+  .world-map__my-world-btn {
+    inset-block-start: auto;
+    inset-block-end: var(--space-4);
+    inset-inline-start: calc(var(--space-4) + 190px);
+  }
+}
+
+@media (max-width: 599px) {
+  .world-map__my-world-btn {
+    inset-inline-start: var(--space-4);
+    inset-block-end: calc(var(--space-4) + 64px);
+  }
+}
+
+.world-map__title {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-end: calc(var(--space-4) + 64px);
+  text-align: end;
+  color: var(--color-text);
+  /* A solid pill background (same pattern as .station-node__label and the
+     HUD buttons) instead of a white text-shadow halo: the halo trick only
+     kept the title legible against the day sky's mid-bright teal — against
+     the twilight variant's deep indigo/pink sky (added in a later pass) the
+     dark text nearly vanished, since a soft glow can't buy real contrast
+     the way an opaque backing can. */
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  animation: fade-in var(--transition-slow) ease both;
+}
+
+.world-map__stations {
+  position: absolute;
+  inset: 0;
+  /* This full-screen positioning layer has no visible content of its own
+     (each station-node child positions itself) — without this, it silently
+     intercepts clicks meant for the HUD/switch-profile/my-world/avatar-figure
+     buttons wherever no station icon happens to be directly underneath the
+     pointer, since it paints after them in the same stacking context. */
+  pointer-events: none;
+}
+
+.world-map__stations > * {
+  pointer-events: auto;
+}
+
+/* Decorative "journey" trail connecting the station nodes — pure SVG, no
+   image asset, drawn from the same mapPosition data the nodes use. Purely
+   ornamental: pointer-events are disabled so it never intercepts taps. */
+.world-map__trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.world-map__trail-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-dasharray: 0.6 3.2;
+  animation: dash-flow 6s linear infinite;
+}
+
+.station-node {
+  /* App is RTL-only (html[dir=rtl]): inset-inline-start places the node's
+     start (physically right) edge at xPercent, so we shift back to the
+     right by 50% of the node's own width/height to center it visually
+     on that map coordinate. */
+  position: absolute;
+  transform: translate(50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  width: 108px;
+  animation: pop 480ms var(--ease-bounce) both;
+}
+
+/* Staggered mount entrance so the 7 nodes pop in one after another instead
+   of all at once. */
+.world-map__stations > .station-node:nth-child(1) {
+  animation-delay: 80ms;
+}
+.world-map__stations > .station-node:nth-child(2) {
+  animation-delay: 160ms;
+}
+.world-map__stations > .station-node:nth-child(3) {
+  animation-delay: 240ms;
+}
+.world-map__stations > .station-node:nth-child(4) {
+  animation-delay: 320ms;
+}
+.world-map__stations > .station-node:nth-child(5) {
+  animation-delay: 400ms;
+}
+.world-map__stations > .station-node:nth-child(6) {
+  animation-delay: 480ms;
+}
+.world-map__stations > .station-node:nth-child(7) {
+  animation-delay: 560ms;
+}
+
+.station-node__icon {
+  position: relative;
+  width: var(--tap-primary);
+  height: var(--tap-primary);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast);
+  /* Neutral fallback border — every real station carries a
+     .station-node--* modifier below that overrides this with its own
+     brand color, so nodes read as "7 distinct colorful worlds" instead of
+     one uniform yellow ring repeated 7 times. */
+  border: 3px solid var(--color-border);
+  /* Gentle idle life: gets paused (and its transform/box-shadow handed back
+     to the transition) the moment the node is interacted with. */
+  animation: gentle-float 3.4s ease-in-out infinite, glow-pulse 4.5s ease-in-out infinite;
+}
+
+/* ---- Per-station color identity: each of the 7 map stations gets its own
+   accent color on both the icon border and the idle glow-pulse ring (via
+   --glow-color / --glow-color-fade, consumed by the shared glow-pulse
+   keyframe in animations.css). Modifier class is added by StationNode.js
+   from the station's categoryKey. ---- */
+.station-node--letters .station-node__icon {
+  border-color: var(--color-primary);
+  --glow-color: rgba(255, 107, 74, 0.55);
+  --glow-color-fade: rgba(255, 107, 74, 0);
+}
+
+.station-node--phonology .station-node__icon {
+  border-color: var(--color-accent-pink);
+  --glow-color: rgba(255, 79, 163, 0.55);
+  --glow-color-fade: rgba(255, 79, 163, 0);
+}
+
+.station-node--syllables-words .station-node__icon {
+  border-color: var(--color-accent-purple);
+  --glow-color: rgba(139, 92, 246, 0.55);
+  --glow-color-fade: rgba(139, 92, 246, 0);
+}
+
+.station-node--arithmetic .station-node__icon {
+  border-color: var(--color-accent-yellow);
+  --glow-color: rgba(255, 199, 44, 0.55);
+  --glow-color-fade: rgba(255, 199, 44, 0);
+}
+
+.station-node--geometry .station-node__icon {
+  border-color: var(--color-accent-teal);
+  --glow-color: rgba(38, 198, 218, 0.55);
+  --glow-color-fade: rgba(38, 198, 218, 0);
+}
+
+.station-node--multiplication-prep .station-node__icon {
+  border-color: var(--color-success);
+  --glow-color: rgba(67, 183, 93, 0.55);
+  --glow-color-fade: rgba(67, 183, 93, 0);
+}
+
+.station-node--reading-comprehension .station-node__icon {
+  border-color: var(--color-secondary);
+  --glow-color: rgba(41, 182, 246, 0.55);
+  --glow-color-fade: rgba(41, 182, 246, 0);
+}
+
+.station-node__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-round);
+}
+
+/* Slightly desynchronize the idle float/glow per node so the map doesn't
+   breathe in unison — feels more alive. */
+.station-node:nth-child(odd) .station-node__icon {
+  animation-duration: 3.1s, 4.2s;
+}
+.station-node:nth-child(even) .station-node__icon {
+  animation-duration: 3.8s, 5s;
+  animation-delay: -1.2s, -2s;
+}
+
+/* A gentle size variance across nodes so the map reads as hand-placed
+   rather than a uniform grid. Never shrinks below the primary tap target. */
+.station-node:nth-child(3n) .station-node__icon {
+  width: calc(var(--tap-primary) + 14px);
+  height: calc(var(--tap-primary) + 14px);
+  font-size: 2.3rem;
+}
+
+.station-node:hover .station-node__icon,
+.station-node:focus-visible .station-node__icon {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation-play-state: paused;
+}
+
+.station-node:active .station-node__icon {
+  transform: scale(0.93);
+  animation-play-state: paused;
+}
+
+/* Persistent "already visited" badge — static (no animation), distinct
+   from the momentary badge-pop flashes used for in-station "correct"
+   feedback elsewhere in the project, since this marks a lasting state. */
+.station-node--visited .station-node__icon {
+  border-color: var(--color-success);
+}
+
+.station-node__visited-badge {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-round);
+  background: var(--color-success);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.station-node__label {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 599px) {
+  .station-node {
+    width: 84px;
+  }
+
+  .station-node__icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+
+  /* Keep node sizing uniform on small screens — the desktop size-variance
+     rule is more specific than the plain selector above and would
+     otherwise win here. */
+  .station-node:nth-child(3n) .station-node__icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+
+  .world-map__title {
+    display: none;
+  }
+}
+
+/* ---- Ambient tappable critters — pure delight, no game meaning. A bird
+   and a butterfly drift on slow ambient loops across open sky areas (kept
+   clear of the station nodes' mapPosition coordinates in stations.js) and
+   give a little bounce + "pop" sound when tapped. Position is animated via
+   inset-inline-start/inset-block-start (not transform), leaving transform
+   free for the inner element's flutter/tap-bounce so the two never fight
+   over the same CSS property. ---- */
+.world-map__critter {
+  position: absolute;
+  z-index: var(--z-base);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+}
+
+.world-map__critter-inner {
+  display: inline-block;
+  animation: critter-flutter 0.7s ease-in-out infinite;
+}
+
+.world-map__critter-inner--tapped {
+  animation: critter-bounce 550ms var(--ease-bounce);
+}
+
+/* Same sparkle-burst effect and keyframe as tapping a scenery hotspot
+   (below) — `.world-map__critter` is itself `position: absolute`, so it
+   already serves as the containing block for this without needing an
+   extra `position: relative`. */
+.world-map__critter-burst {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(50%, -50%);
+  font-size: 1.6rem;
+  pointer-events: none;
+  animation: hotspot-sparkle 650ms ease-out both;
+}
+
+.world-map__critter--bird {
+  animation: critter-drift-bird 26s ease-in-out infinite;
+}
+
+.world-map__critter--butterfly {
+  font-size: 1.5rem;
+  animation: critter-drift-butterfly 32s ease-in-out infinite;
+}
+
+.world-map__critter--butterfly .world-map__critter-inner {
+  animation-duration: 0.9s;
+}
+
+.world-map__critter--alien {
+  font-size: 1.6rem;
+  animation: critter-drift-alien 29s ease-in-out infinite;
+}
+
+.world-map__critter--alien .world-map__critter-inner {
+  animation-duration: 1.1s;
+}
+
+/* A shooting star that streaks across the sky and is gone — deliberately
+   different rhythm from the other 3 lazy-loop critters (a still, ever-
+   present sky would get "sourced" less often). Visible for only the first
+   ~12% of a long 24s cycle (about 3s of motion), then sits off-screen
+   (negative inset) for the rest — repeats every 24s. No continuous
+   flutter (a comet doesn't wobble); the tap-bounce still needs its own
+   rule below since it shares the same specificity level as the "no
+   flutter" override and would otherwise lose the cascade tie-break. */
+.world-map__critter--comet {
+  font-size: 1.7rem;
+  animation: critter-drift-comet 24s linear infinite;
+}
+
+.world-map__critter--comet .world-map__critter-inner {
+  animation: none;
+}
+
+.world-map__critter--comet .world-map__critter-inner--tapped {
+  animation: critter-bounce 550ms var(--ease-bounce);
+}
+
+@keyframes critter-drift-alien {
+  0% {
+    inset-inline-start: 6%;
+    inset-block-start: 58%;
+  }
+  25% {
+    inset-inline-start: 16%;
+    inset-block-start: 64%;
+  }
+  50% {
+    inset-inline-start: 22%;
+    inset-block-start: 57%;
+  }
+  75% {
+    inset-inline-start: 14%;
+    inset-block-start: 62%;
+  }
+  100% {
+    inset-inline-start: 6%;
+    inset-block-start: 58%;
+  }
+}
+
+@keyframes critter-drift-comet {
+  0% {
+    inset-inline-start: 95%;
+    inset-block-start: 2%;
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  12% {
+    inset-inline-start: -6%;
+    inset-block-start: 24%;
+    opacity: 1;
+  }
+  13%,
+  100% {
+    inset-inline-start: -6%;
+    inset-block-start: 24%;
+    opacity: 0;
+  }
+}
+
+@keyframes critter-drift-bird {
+  0% {
+    inset-inline-start: 10%;
+    inset-block-start: 9%;
+  }
+  25% {
+    inset-inline-start: 32%;
+    inset-block-start: 3%;
+  }
+  50% {
+    inset-inline-start: 58%;
+    inset-block-start: 10%;
+  }
+  75% {
+    inset-inline-start: 34%;
+    inset-block-start: 5%;
+  }
+  100% {
+    inset-inline-start: 10%;
+    inset-block-start: 9%;
+  }
+}
+
+@keyframes critter-drift-butterfly {
+  0% {
+    inset-inline-start: 42%;
+    inset-block-start: 44%;
+  }
+  25% {
+    inset-inline-start: 62%;
+    inset-block-start: 37%;
+  }
+  50% {
+    inset-inline-start: 84%;
+    inset-block-start: 46%;
+  }
+  75% {
+    inset-inline-start: 62%;
+    inset-block-start: 40%;
+  }
+  100% {
+    inset-inline-start: 42%;
+    inset-block-start: 44%;
+  }
+}
+
+@keyframes critter-flutter {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes critter-bounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.5) rotate(-14deg);
+  }
+  60% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@media (max-width: 599px) {
+  .world-map__critter {
+    font-size: 1.4rem;
+  }
+
+  .world-map__critter--butterfly {
+    font-size: 1.2rem;
+  }
+
+  .world-map__critter--alien {
+    font-size: 1.3rem;
+  }
+
+  .world-map__critter--comet {
+    font-size: 1.4rem;
+  }
+}
+
+/* ---- Hidden scenery hotspots — invisible tappable buttons layered over a
+   few landmarks already painted into map-background.png (sun, floating
+   island, a sparkle, the smaller sun/moon). No visible chrome of their own
+   — a generous invisible tap target, sized well above the project's
+   --tap-primary touch-target convention since kids are aiming at a picture,
+   not a button outline. Tapping spawns a short-lived sparkle burst plus a
+   "success" chime. ---- */
+.world-map__hotspot {
+  position: absolute;
+  transform: translate(50%, -50%);
+  width: 72px;
+  height: 72px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: var(--z-base);
+}
+
+.world-map__hotspot-burst {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  pointer-events: none;
+  animation: hotspot-sparkle 650ms ease-out both;
+}
+
+@keyframes hotspot-sparkle {
+  0% {
+    transform: scale(0.3) rotate(-15deg);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.3) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 599px) {
+  .world-map__hotspot {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* ---- "You are here" avatar figure — a larger stand-in for the active
+   profile, fixed at a home spot near the bottom-center of the map (chosen
+   to stay clear of all 7 station nodes and the SVG trail — see the comment
+   on buildAvatarFigure() in WorldMapScreen.js for the coordinate
+   reasoning). It's a real button — tapping your own character is the
+   discoverable way into "My World" (same destination as the corner
+   button). ---- */
+.world-map__avatar-figure {
+  position: absolute;
+  transform: translateX(50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: var(--z-base);
+  /* Button reset — this is a real <button>, not a decorative div. */
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  transition: transform var(--transition-fast) var(--ease-out-soft);
+}
+
+.world-map__avatar-figure:hover {
+  transform: translateX(50%) translateY(-4px);
+}
+
+.world-map__avatar-figure:active {
+  transform: translateX(50%) translateY(var(--lift-sm));
+}
+
+/* Soft ground shadow so the figure reads as standing on the map rather
+   than floating over it. Lives on the outer wrapper (not the .avatar
+   element itself, which has overflow: hidden for its circular crop and
+   would otherwise clip this). */
+.world-map__avatar-figure::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -10px;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+  width: 70%;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  filter: blur(2px);
+  z-index: -1;
+}
+
+.world-map__avatar-figure-img {
+  position: relative;
+  animation: gentle-float 3.6s ease-in-out infinite;
+}
+
+@media (max-width: 599px) {
+  .world-map__avatar-figure-img.avatar--lg {
+    width: 84px;
+    height: 84px;
+  }
+}

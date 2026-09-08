@@ -1,0 +1,155 @@
+/**
+ * Shared @keyframes used across components/screens.
+ */
+@keyframes pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gentle-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down-fade {
+  from {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 74, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(255, 107, 74, 0);
+  }
+}
+
+.anim-pop {
+  animation: pop var(--transition-slow) ease both;
+}
+
+.anim-bounce {
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.anim-float {
+  animation: gentle-float 3s ease-in-out infinite;
+}
+
+.anim-fade-in {
+  animation: fade-in var(--transition-base) ease both;
+}
+
+.anim-slide-up {
+  animation: slide-up var(--transition-base) ease both;
+}
+
+/* ---- Added for the visual-polish pass: selection badges, alive map,
+   flowing trail. All are neutralized by the global prefers-reduced-motion
+   rule in base.css. ---- */
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0) rotate(-15deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* --glow-color defaults to the original warm-yellow ring (used by every
+   station's tile hint-glow, a shared "look here" semantic kept consistent
+   across all 7 stations). world-map.css overrides --glow-color per
+   .station-node--* modifier so each map node's idle glow matches its own
+   station's accent color without needing a duplicate keyframe. */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--glow-color, rgba(255, 199, 44, 0.55)), var(--shadow-md);
+  }
+  50% {
+    box-shadow: 0 0 0 10px var(--glow-color-fade, rgba(255, 199, 44, 0)), var(--shadow-md);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}

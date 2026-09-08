@@ -1,0 +1,399 @@
+/**
+ * Geometry station ("צורות") — Stage 2's fifth real learning activity.
+ * Reuses design tokens + shared @keyframes (badge-pop, glow-pulse) from
+ * tokens.css / animations.css, mirroring arithmetic-station.css's
+ * structure. Class names are scoped to this station (.geometry-station*,
+ * .shape-tile*) to avoid collisions with the other stations' tiles.
+ *
+ * All 8 shapes share one solid fill color (.shape base class) so the
+ * exercise tests shape-recognition, not color-matching. Correct/incorrect
+ * feedback therefore never recolors the shape itself — it only changes the
+ * surrounding TILE's border/glow/background, per the no-red / non-color-
+ * dependent rules used across every station in this game.
+ */
+
+.geometry-station {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: url('../../assets/images/stations/scenes/geometry-scene.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Alternate scene image, applied by GeometryStation.js's renderShell() on
+   ~50% of mounts for background variety. Placed before --fallback-bg below
+   in source order so that if the alt image fails to load (both classes
+   present), --fallback-bg wins on equal specificity and the gradient still
+   applies correctly. */
+.geometry-station--scene-alt {
+  background-image: url('../../assets/images/stations/scenes/geometry-scene-alt.png');
+}
+
+/* Falls back to the station's original gradient if the illustrated scene
+   image fails to load — identical pattern to .world-map--fallback-bg in
+   world-map.css (the pre-existing gradient rule, restated verbatim here,
+   since a later background-image declaration in the base rule above
+   otherwise replaces it outright rather than layering under it). */
+.geometry-station--fallback-bg {
+  background-image: none;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+}
+
+/* ---- Header: always-visible back button + title + round progress ---- */
+
+.geometry-station__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  /* Light backing so the title/progress dots stay legible over the
+     illustrated scene image — the back button already has its own opaque
+     .btn-ghost background, so this is just for the text/dots sitting
+     directly on the bare background otherwise. */
+  background: rgba(255, 248, 238, 0.72);
+  border-radius: var(--radius-lg);
+  margin: var(--space-3) var(--space-5) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.geometry-station__title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.geometry-station__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+
+.geometry-station__progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.geometry-station__dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.geometry-station__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+}
+
+.geometry-station__dot--done {
+  background: var(--color-success);
+}
+
+.geometry-station__dot--current {
+  /* Geometry's brand accent is --color-accent-teal. */
+  background: var(--color-accent-teal);
+  box-shadow: 0 0 0 3px rgba(38, 198, 218, 0.4);
+}
+
+/* ---- Round body ---- */
+
+.geometry-station__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5) var(--space-7);
+}
+
+/* Semi-translucent backing behind the round's prompt + shape-tile grid so
+   text/tiles stay legible over the busy illustrated scene image, while
+   still letting the scene show through at the edges. rgba tone matches
+   --color-surface (#fff8ee). */
+.geometry-station__scene-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  background: rgba(255, 248, 238, 0.82);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-lg);
+  padding: var(--space-6) var(--space-5);
+}
+
+.geometry-station__prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  animation: fade-in var(--transition-slow) ease both;
+}
+
+.geometry-station__prompt-lead {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.geometry-station__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--space-5);
+  justify-content: center;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* ---- Shape tiles ---- */
+
+.shape-tile {
+  width: 120px;
+  height: 120px;
+  min-width: var(--tap-primary);
+  min-height: var(--tap-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Geometry's brand accent is --color-accent-teal — its own light tile
+     tint keeps the idle tile from reading as flat white. */
+  background: var(--tile-tint-geometry);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  margin-inline: auto;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast),
+    background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.shape-tile:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  border-color: var(--color-accent-teal);
+}
+
+.shape-tile:active:not(:disabled) {
+  transform: translateY(var(--lift-sm)) scale(0.96);
+}
+
+.shape-tile:disabled {
+  cursor: default;
+}
+
+.shape-tile:disabled:not(.shape-tile--correct) {
+  opacity: 0.55;
+}
+
+/* Correct: border + glow ring + scale-pop on the TILE only — the shape's
+   own fill color never changes, so the exercise never recolors the thing
+   being identified. */
+.shape-tile--correct {
+  border-color: var(--color-success-dark);
+  /* rgba kept in sync with --color-success's current value (67, 183, 93). */
+  box-shadow: 0 0 0 5px rgba(67, 183, 93, 0.35), var(--shadow-contact-sm), var(--shadow-sm);
+  animation: badge-pop var(--transition-slow) var(--ease-bounce) both;
+}
+
+/* Wrong tap: never red. A warm, neutral wiggle plus a background/border
+   change on the TILE (not the shape) that still communicates "not this
+   one" even when prefers-reduced-motion strips the animation entirely
+   (see base.css). */
+@keyframes shape-tile-wiggle {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.shape-tile--incorrect {
+  background: var(--color-surface-tint);
+  border-color: var(--color-warning);
+  animation: shape-tile-wiggle 480ms ease-in-out;
+}
+
+/* Soft hint glow on the correct tile after a couple of gentle misses — the
+   child still has to tap it themselves. Reuses the shared glow-pulse
+   keyframe (warm-yellow) already defined in animations.css. */
+.shape-tile--hint {
+  border-color: var(--color-accent-yellow);
+  animation: glow-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- Shape silhouettes ----
+   One shared solid fill for every shape (base class) so this exercise
+   tests shape recognition, not color-matching. Modifier classes use
+   verbatim clip-path/border-radius values — do not hand-tweak the polygon
+   math. */
+
+.shape {
+  display: block;
+  width: 64px;
+  height: 64px;
+  /* All 8 shapes still share exactly one fill color (unchanged design
+     intent — tests shape recognition, not color-matching); it's now
+     Geometry's own brand teal instead of the generic coral primary. */
+  background: var(--color-accent-teal);
+}
+
+.shape--circle {
+  border-radius: 50%;
+}
+
+.shape--square {
+  border-radius: var(--radius-sm);
+}
+
+.shape--rectangle {
+  width: 84px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+}
+
+.shape--triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.shape--diamond {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.shape--star {
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.shape--pentagon {
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+}
+
+.shape--hexagon {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* ---- Completion view ---- */
+
+.geometry-station__completion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.geometry-station__completion-emoji {
+  font-size: 4rem;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.geometry-station__completion-title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.geometry-station__completion-coins {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-warning-dark);
+}
+
+.geometry-station__reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  animation: pop 520ms var(--ease-bounce) 150ms both;
+}
+
+.geometry-station__reward-emoji {
+  font-size: 3rem;
+}
+
+.geometry-station__reward-label {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.geometry-station__reward-note {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+/* ---- Companion: small decorative presence in a corner of the scene ----
+   Purely ornamental (aria-hidden, no click handler — this station already
+   has its own header back-button for navigation). Mounted once in
+   renderShell(), so it persists across rounds without flicker/reset. */
+.geometry-station__companion {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: 84px;
+  height: 84px;
+  pointer-events: none;
+  z-index: var(--z-base);
+  filter: drop-shadow(0 6px 10px rgba(90, 70, 52, 0.25));
+  animation: gentle-float 3.4s ease-in-out infinite;
+}
+
+.geometry-station__companion img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 599px) {
+  .geometry-station__companion {
+    width: 60px;
+    height: 60px;
+  }
+
+  .geometry-station__prompt-lead {
+    font-size: var(--font-size-lg);
+  }
+
+  .shape-tile {
+    width: 100px;
+    height: 100px;
+  }
+
+  .shape {
+    width: 52px;
+    height: 52px;
+  }
+
+  .shape--rectangle {
+    width: 68px;
+    height: 42px;
+  }
+}

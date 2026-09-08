@@ -1,0 +1,1 @@
+Reserved for a self-hosted Hebrew webfont file, if one is added later. Stage 1 intentionally uses the system font stack defined in css/tokens.css to stay fully offline with zero network calls.

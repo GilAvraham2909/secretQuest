@@ -1,0 +1,83 @@
+/**
+ * Card-shaped things: profile cards, station map nodes (shared visual language).
+ */
+.card {
+  /* Warm cream tint instead of flat white — part of the "more colorful"
+     pass; profile cards aren't tied to a station so they use the existing
+     general warm tint token rather than a station accent. */
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  padding: var(--space-5);
+  transition: transform var(--transition-base) var(--ease-out-soft), box-shadow var(--transition-base);
+}
+
+.card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+}
+
+.card:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-primary);
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  border: 3px solid transparent;
+  animation: pop 520ms var(--ease-bounce) both;
+}
+
+.profile-card:focus-visible {
+  border-color: var(--color-secondary);
+}
+
+.profile-card__name {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.profile-card__delete {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-end: var(--space-2);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-card__delete:hover {
+  background: var(--color-warning);
+}
+
+.profile-card--add {
+  justify-content: center;
+  border: 3px dashed var(--color-border);
+  box-shadow: none;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.profile-card--add:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.profile-card--add .profile-card__plus {
+  font-size: var(--font-size-xxl);
+  line-height: 1;
+}

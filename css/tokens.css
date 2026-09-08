@@ -1,0 +1,149 @@
+/**
+ * Design tokens — custom properties used across the whole app.
+ * Change values here to re-theme the entire game.
+ *
+ * FONT NOTE (offline requirement): the game must run with zero network
+ * calls, so we do NOT link Google Fonts or any CDN webfont. Instead we use
+ * a system font stack that already ships with Hebrew glyph coverage on
+ * Windows/macOS/Android/iOS ('Segoe UI', Arial, sans-serif). If a real
+ * self-hosted webfont file is added later under assets/fonts/, add an
+ * @font-face rule in base.css and prepend its family name to this stack.
+ */
+:root {
+  /* ---- Palette: warm & happy, no harsh red anywhere ---- */
+  --color-primary: #ff6b4a;
+  --color-primary-dark: #e85233;
+  --color-primary-light: #ffab91;
+  --color-secondary: #29b6f6;
+  --color-secondary-dark: #1199d9;
+  --color-accent-yellow: #ffc72c;
+  --color-accent-yellow-dark: #cc9f23;
+  --color-accent-pink: #ff4fa3;
+  --color-accent-pink-dark: #cc3f82;
+  --color-success: #43b75d;
+  --color-success-dark: #2b983f;
+  --color-warning: #ffb74d;
+  --color-warning-dark: #f59a1f;
+
+  /* ---- Two more palette members, added for per-station color identity
+     (each of the 7 map stations/screens gets its own accent — see
+     world-map.css's .station-node--* modifiers and each station's own
+     stylesheet) ---- */
+  --color-accent-purple: #8b5cf6;
+  --color-accent-purple-dark: #6f4ac5;
+  --color-accent-teal: #26c6da;
+  --color-accent-teal-dark: #1e9eae;
+
+  --color-surface: #fff8ee;
+  --color-surface-alt: #ffffff;
+  --color-surface-tint: #ffefd9;
+
+  /* ---- "Journey" identity accents — pulled from the map artwork's own
+     sky/hill palette, so the profile/create screens read as the same
+     world as the map rather than a generic warm-cream form. Used sparingly. ---- */
+  --color-dawn-sky: #d6f0ee;
+  --color-trail-berry: #c8447a;
+  --color-star-glow: #ffe9a8;
+
+  --color-text: #5a4634;
+  --color-text-muted: #8a7860;
+  --color-text-on-primary: #ffffff;
+
+  --color-border: #f0dfc6;
+
+  /* ---- Per-station tile-background tints (~12% of that station's accent
+     color mixed manually over white, computed ahead of time rather than
+     via color-mix() since no other file in the project relies on that
+     function and this keeps behavior identical on every browser) — used by
+     each station's own stylesheet so idle tiles read as "tinted", not flat
+     white, while staying easily legible. Not applied to selected/correct
+     states, which keep their own green success treatment. ---- */
+  --tile-tint-letters: #ffede9;
+  --tile-tint-phonology: #ffeaf4;
+  --tile-tint-syllables-words: #f1ebfe;
+  --tile-tint-arithmetic: #fff8e6;
+  --tile-tint-geometry: #e5f8fb;
+  --tile-tint-multiplication-prep: #e8f6ec;
+  --tile-tint-reading-comprehension: #e5f6fe;
+
+  /* ---- Typography ---- */
+  --font-family-base: 'Segoe UI', Arial, sans-serif;
+  --font-size-sm: 0.9rem;
+  --font-size-base: 1rem;
+  --font-size-md: 1.15rem;
+  --font-size-lg: 1.5rem;
+  --font-size-xl: 2rem;
+  --font-size-xxl: 2.75rem;
+
+  /* ---- Spacing scale (8 steps, rem based) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* ---- Border radius scale ---- */
+  --radius-sm: 16px;
+  --radius-md: 20px;
+  --radius-lg: 26px;
+  --radius-xl: 32px;
+  --radius-round: 999px;
+
+  /* ---- Soft, color-tinted shadows ---- */
+  --shadow-sm: 0 2px 6px rgba(90, 70, 52, 0.12);
+  --shadow-md: 0 6px 16px rgba(90, 70, 52, 0.16);
+  --shadow-lg: 0 12px 32px rgba(90, 70, 52, 0.2);
+
+  /* ---- Z-index scale ---- */
+  --z-base: 1;
+  --z-companion: 20;
+  --z-overlay: 100;
+  --z-toast: 200;
+  --z-modal: 300;
+
+  /* ---- Touch targets ---- */
+  --tap-min: 48px;
+  --tap-primary: 64px;
+
+  /* ---- Motion ----
+     Deliberately NO embedded easing keyword here (just the duration): almost
+     every call site does `var(--transition-*) <own-easing>` (an explicit
+     `ease`, `var(--ease-bounce)`, etc). A token that already carried its own
+     "ease" made every one of those declarations syntactically invalid (an
+     animation/transition shorthand can only carry one timing-function) —
+     the whole declaration was silently dropped, so buttons/tiles/cards never
+     actually transitioned and every fade-in/pop/slide-up entrance sat stuck
+     at its pre-animation state (usually opacity: 0) forever. Fixed by
+     dropping "ease" from the token; a call site with no explicit easing of
+     its own still gets "ease" for free, since that's the CSS initial value. */
+  --transition-fast: 150ms;
+  --transition-base: 250ms;
+  --transition-slow: 450ms;
+
+  /* ---- Motion easings: tactile, slightly bouncy interactions ---- */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---- Typographic personality (system-font stack only, offline-safe) ---- */
+  --font-size-hero: 3.25rem;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.04em;
+
+  /* ---- Layered "toy-like" depth: ambient shadow + tighter contact edge ---- */
+  --shadow-contact-sm: 0 3px 0 rgba(90, 70, 52, 0.16);
+  --shadow-contact-md: 0 5px 0 rgba(90, 70, 52, 0.16);
+  --lift-sm: 3px;
+  --lift-md: 5px;
+}
+
+/*
+ * Breakpoints (documented constants — CSS has no var() support inside
+ * @media, so these values are repeated literally wherever a media query
+ * is used; keep them in sync with this comment):
+ *   mobile:  max-width: 599px
+ *   tablet:  600px – 1024px
+ *   desktop: min-width: 1025px
+ */

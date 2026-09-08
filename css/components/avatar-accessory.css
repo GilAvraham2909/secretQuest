@@ -1,0 +1,96 @@
+/**
+ * Positioned emoji overlays for equipped accessories (hat/glasses/wings/
+ * scarf), layered on top of the circular avatar image. See
+ * buildAccessoryOverlays() in js/profiles/AvatarCatalog.js for why this
+ * approach was chosen over pre-generated art (as outfits use): with 4
+ * independent slots, pre-generating every outfit×accessory×slot
+ * combination would explode combinatorially, and no image-layering
+ * capability is available — only one-shot text-to-image generation.
+ *
+ * The 6 base avatar portraits are NOT drawn to a consistent head-to-canvas
+ * ratio (some full-body with a small head, one a close head-and-shoulders
+ * shot), so a single fixed vertical position looked visibly detached from
+ * the head on most avatars. The `inset-block-start` values below are just
+ * the AVERAGE-case fallback (used only if JS doesn't set an inline
+ * override) — buildAccessoryOverlays() in js/profiles/AvatarCatalog.js sets
+ * `element.style.insetBlockStart` per avatarId at render time, which (being
+ * inline) always wins over these class rules regardless of specificity.
+ * See that function's own comment for the per-avatar calibration table.
+ * All 4 slots are horizontally centered via inset-inline-start: 50% +
+ * translateX(50%) here (that part IS shared across every avatar, since
+ * heads are reasonably horizontally centered in all 6 source images) —
+ * see the RTL centering note below for why the sign is +50%, not -50%.
+ *
+ * `.avatar` uses `overflow: hidden` for its circular crop, so every offset
+ * here is kept within the 0%-100% box (never negative, never >100%) —
+ * anything outside that box is invisible regardless of the circular mask,
+ * since overflow:hidden clips at the square box edge first.
+ *
+ * Centering note: this app is RTL-only, so `inset-inline-start` resolves
+ * to physical `right`, not `left`. Anchoring via `inset-inline-start: 50%`
+ * therefore positions the element's right edge 50% in from the container's
+ * right edge, meaning the element sits to the LEFT of that point. The
+ * classic `translateX(-50%)` centering trick assumes a physical `left`
+ * anchor (LTR only) and shifts further left — in RTL that pushes the
+ * element mostly outside the circular crop instead of centering it.
+ * `transform` is always physical (never direction-aware), so the fix here
+ * is `translateX(50%)` (positive), which shifts right by half the
+ * element's own width and correctly centers it under a `right: 50%`
+ * anchor.
+ */
+
+.avatar-accessory {
+  position: absolute;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
+/* Real cutout art (assets/images/accessories/*.png, same flat papercraft
+   style + magenta chroma-key workflow as the My World furniture pieces)
+   instead of a raw emoji glyph — matches the game's illustrated style and
+   sidesteps the 🪽 wings emoji rendering as a blank/tofu glyph on some
+   Windows font configurations. Sized in `em` off the wrapper's own
+   font-size (set below / by the --sm/--lg overrides) so the existing
+   per-size responsive scaling still applies without duplicating rules. The
+   emoji fallback (createImageWithFallback's built-in .avatar-emoji span,
+   used only if the image ever fails to load) is sized the same way since
+   it inherits the same font-size.
+*/
+.avatar-accessory img {
+  display: block;
+  width: 2.2em;
+  height: auto;
+}
+
+.avatar-accessory--hat {
+  inset-block-start: 8%;
+  inset-inline-start: 50%;
+  transform: translateX(50%) rotate(-8deg);
+}
+
+.avatar-accessory--glasses {
+  inset-block-start: 42%;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+}
+
+.avatar-accessory--wings {
+  inset-block-start: 62%;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+}
+
+.avatar-accessory--scarf {
+  inset-block-start: 65%;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+}
+
+.avatar--lg .avatar-accessory {
+  font-size: 2rem;
+}
+
+.avatar--sm .avatar-accessory {
+  font-size: 0.9rem;
+}

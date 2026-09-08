@@ -1,0 +1,400 @@
+/**
+ * Syllables/words station ("הברות ומילים") — Stage 2's third real learning
+ * activity. Reuses design tokens + shared @keyframes (badge-pop,
+ * glow-pulse) from tokens.css / animations.css, mirroring
+ * phonology-station.css's structure. Class names are scoped to this
+ * station (.word-building-station*, .letter-slot*) to avoid collisions
+ * with the other stations' tiles, since this station's visual is a "train"
+ * of letter-box tiles forming a word rather than bare glyphs or emoji
+ * tiles. RTL logical properties throughout.
+ */
+
+.word-building-station {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* Original gradient stays in place as the fallback background — the
+     illustrated scene below overrides it, and --fallback-bg (added by the
+     bgProbe check in WordBuildingStation.js if the image fails to load)
+     restores this rule explicitly. */
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+  background-image: url('../../assets/images/stations/scenes/syllables-words-scene.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Alternate scene image, applied by WordBuildingStation.js's renderShell()
+   on ~50% of mounts for background variety. Placed before --fallback-bg
+   below in source order so that if the alt image fails to load (both
+   classes present), --fallback-bg wins on equal specificity and the
+   gradient still applies correctly. */
+.word-building-station--scene-alt {
+  background-image: url('../../assets/images/stations/scenes/syllables-words-scene-alt.png');
+}
+
+.word-building-station--fallback-bg {
+  background-image: none;
+  background: radial-gradient(circle at 50% 0%, var(--color-surface-tint), var(--color-surface) 70%);
+}
+
+/* ---- Header: always-visible back button + title + round progress ---- */
+
+.word-building-station__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  /* The header sits directly on the illustrated night scene (no opaque
+     background of its own otherwise), so it gets a light version of the
+     same cream panel backing used for the round content below. */
+  background: rgba(255, 248, 238, 0.78);
+  box-shadow: var(--shadow-sm);
+}
+
+.word-building-station__title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.word-building-station__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+
+.word-building-station__progress-text {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.word-building-station__dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.word-building-station__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+}
+
+.word-building-station__dot--done {
+  background: var(--color-success);
+}
+
+.word-building-station__dot--current {
+  /* Syllables/words' brand accent is --color-accent-purple. */
+  background: var(--color-accent-purple);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35);
+}
+
+/* ---- Round body ---- */
+
+.word-building-station__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5) var(--space-7);
+}
+
+/* Semi-translucent backing behind each round's prompt + train/house + tile
+   grid, so text and tiles stay readable over the busy illustrated night
+   scene while still letting the artwork show through around the edges.
+   The scene here is dark-toned, so opacity is pushed a bit higher than a
+   lighter-scene station would need for the same contrast guarantee. */
+.word-building-station__scene-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  background: rgba(255, 248, 238, 0.88);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  padding: var(--space-6) var(--space-5);
+  max-width: 100%;
+}
+
+.word-building-station__prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  animation: fade-in var(--transition-slow) ease both;
+}
+
+.word-building-station__prompt-lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+.word-building-station__prompt-emoji {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+/* ---- Word train: a row of letter-box "train car" tiles ---- */
+
+.word-building-station__train {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-1);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.word-building-station__car {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+/* Subtle "coupling" between cars — a small connector bar, decorative only. */
+.word-building-station__car:not(:last-child)::after {
+  content: '';
+  position: relative;
+  inset-inline-end: calc(-1 * var(--space-1) - 3px);
+  display: inline-block;
+  width: var(--space-1);
+  height: 6px;
+  background: var(--color-border);
+  border-radius: var(--radius-round);
+}
+
+.word-building-station__car--blank {
+  color: var(--color-text-muted);
+  background: var(--color-surface-tint);
+  border-style: dashed;
+  border-color: var(--color-accent-purple);
+}
+
+.word-building-station__car--filled {
+  color: var(--color-text-on-primary);
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  border-style: solid;
+  animation: badge-pop var(--transition-slow) var(--ease-bounce) both;
+}
+
+.word-building-station__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--space-5);
+  justify-content: center;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* ---- Letter-option tiles ---- */
+
+.letter-slot {
+  width: 108px;
+  height: 108px;
+  min-width: var(--tap-primary);
+  min-height: var(--tap-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text);
+  /* Syllables/words' brand accent is --color-accent-purple — its own light
+     tile tint keeps the idle tile from reading as flat white. */
+  background: var(--tile-tint-syllables-words);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+  margin-inline: auto;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast),
+    background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.letter-slot:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  border-color: var(--color-accent-purple);
+}
+
+.letter-slot:active:not(:disabled) {
+  transform: translateY(var(--lift-sm)) scale(0.96);
+}
+
+.letter-slot:disabled {
+  cursor: default;
+}
+
+.letter-slot:disabled:not(.letter-slot--correct) {
+  opacity: 0.55;
+}
+
+.letter-slot--correct {
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  color: var(--color-text-on-primary);
+  animation: badge-pop var(--transition-slow) var(--ease-bounce) both;
+}
+
+/* Wrong tap: never red. A warm, neutral wiggle plus a background/border
+   change that still communicates "not this one" even when
+   prefers-reduced-motion strips the animation entirely (see base.css). */
+@keyframes letter-slot-wiggle {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.letter-slot--incorrect {
+  background: var(--color-surface-tint);
+  border-color: var(--color-warning);
+  animation: letter-slot-wiggle 480ms ease-in-out;
+}
+
+/* Soft hint glow on the correct tile after a couple of gentle misses — the
+   child still has to tap it themselves. Reuses the shared glow-pulse
+   keyframe (warm-yellow) already defined in animations.css. */
+.letter-slot--hint {
+  border-color: var(--color-accent-yellow);
+  animation: glow-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- Completion view ---- */
+
+.word-building-station__completion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-6);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  animation: slide-up var(--transition-slow) var(--ease-bounce) both;
+}
+
+.word-building-station__completion-emoji {
+  font-size: 4rem;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+.word-building-station__completion-title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.word-building-station__completion-coins {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-warning-dark);
+}
+
+.word-building-station__reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-tint);
+  border-radius: var(--radius-lg);
+  animation: pop 520ms var(--ease-bounce) 150ms both;
+}
+
+.word-building-station__reward-emoji {
+  font-size: 3rem;
+}
+
+.word-building-station__reward-label {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.word-building-station__reward-note {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+/* ---- Companion: small decorative presence in the night scene ---- */
+
+.word-building-station__companion {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(90, 70, 52, 0.35));
+  animation: gentle-float 3.4s ease-in-out infinite;
+  z-index: var(--z-base);
+}
+
+.word-building-station__companion img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 599px) {
+  .word-building-station__car {
+    width: 52px;
+    height: 52px;
+    font-size: var(--font-size-lg);
+  }
+
+  .letter-slot {
+    width: 92px;
+    height: 92px;
+    font-size: var(--font-size-xl);
+  }
+
+  .word-building-station__prompt-emoji {
+    font-size: 2.75rem;
+  }
+
+  .word-building-station__companion {
+    width: 56px;
+    height: 56px;
+    font-size: 1.8rem;
+  }
+}

@@ -1,0 +1,662 @@
+/**
+ * "הדמות שלי / העולם שלי" — reward dress-up / room screen.
+ * Not tied to a single station, so it uses the general warm/primary
+ * palette rather than a station accent color. Reuses design tokens
+ * (palette, spacing, radius, shadow scales) + shared @keyframes
+ * (badge-pop) from tokens.css / animations.css. RTL logical properties
+ * throughout. Global prefers-reduced-motion handling lives in base.css.
+ */
+
+.my-world {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5) var(--space-8);
+  position: relative;
+  overflow-x: hidden;
+  /* A showcase-room feel instead of a plain cream form background — the
+     same dawn-sky/star-glow "journey identity" tokens used elsewhere,
+     plus a warm pink/purple wash pulled toward the top so the page reads
+     as festive from first paint, not just its individual cards. */
+  background: radial-gradient(circle at 15% -10%, var(--color-dawn-sky) 0%, transparent 55%),
+    radial-gradient(circle at 100% 0%, #ffe3f1 0%, transparent 45%),
+    linear-gradient(180deg, var(--color-surface-tint) 0%, var(--color-surface) 45%);
+}
+
+/* Small drifting star-glints (same recipe as profile-select.css) so the
+   backdrop feels alive rather than a static gradient. */
+.my-world::before,
+.my-world::after {
+  content: '✦';
+  position: absolute;
+  color: var(--color-star-glow);
+  font-size: 1.8rem;
+  line-height: 1;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: gentle-float 7s ease-in-out infinite;
+  z-index: 0;
+}
+.my-world::before {
+  inset-inline-start: 6%;
+  inset-block-start: 90px;
+}
+.my-world::after {
+  font-size: 1.2rem;
+  inset-inline-end: 8%;
+  inset-block-start: 40px;
+  animation-delay: -3.5s;
+  color: var(--color-accent-pink);
+}
+
+/* ---- Header: always-visible back button + title ---- */
+
+.my-world__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+.my-world__title {
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+  flex: 1 1 auto;
+  color: var(--color-primary-dark);
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ---- Sections ---- */
+
+.my-world__section {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-lg);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 900px;
+  width: 100%;
+  margin-inline: auto;
+  animation: slide-up var(--transition-slow) var(--ease-out-soft) both;
+  position: relative;
+  z-index: 1;
+}
+
+/* Each of the 3 sections gets its own very light tint (a whisper of the
+   section's signature color, not a strong wash) so the page separates into
+   3 legible "zones" at a glance instead of one long white scroll — see
+   the section-title icon + underline below for the same color repeated,
+   tying each zone's heading to its content. */
+.my-world__section--character {
+  background: linear-gradient(165deg, #fff6fa 0%, #ffffff 55%);
+}
+.my-world__section--medals {
+  background: linear-gradient(165deg, #fffaf0 0%, #ffffff 55%);
+}
+.my-world__section--world {
+  background: linear-gradient(165deg, #f2fdfb 0%, #ffffff 55%);
+}
+
+.my-world__section-title {
+  font-size: var(--font-size-lg);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 4px solid var(--color-border);
+  align-self: flex-start;
+}
+
+.my-world__section-title::before {
+  font-size: 1.3em;
+  line-height: 1;
+}
+
+.my-world__section--character .my-world__section-title {
+  border-bottom-color: var(--color-accent-pink);
+}
+.my-world__section--character .my-world__section-title::before {
+  content: '👗';
+}
+
+.my-world__section--medals .my-world__section-title {
+  border-bottom-color: var(--color-accent-yellow-dark);
+}
+.my-world__section--medals .my-world__section-title::before {
+  content: '🏅';
+}
+
+.my-world__section--world .my-world__section-title {
+  border-bottom-color: var(--color-accent-teal);
+}
+.my-world__section--world .my-world__section-title::before {
+  content: '🏡';
+}
+
+.my-world__grid-title {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+/* ---- Portrait row ---- */
+
+.my-world__portrait-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+/* A slow-spinning rainbow glow behind the portrait — the same recipe as
+   the celebration screen's "you won!" ring (celebration.css), reused here
+   at ambient/idle strength so the character's own page opens with a bit of
+   that same "star of the show" feeling instead of a plain photo-in-a-box. */
+.my-world__avatar-halo {
+  position: relative;
+  display: inline-flex;
+  border-radius: var(--radius-round);
+}
+.my-world__avatar-halo::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-primary),
+    var(--color-accent-pink),
+    var(--color-accent-purple),
+    var(--color-accent-yellow),
+    var(--color-success),
+    var(--color-secondary),
+    var(--color-primary)
+  );
+  filter: blur(14px);
+  opacity: 0.6;
+  animation: celebration-glow-spin 6s linear infinite;
+}
+
+.my-world__portrait-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 200px;
+  flex: 1 1 auto;
+}
+
+.my-world__portrait-name {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.my-world__equipped-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 44px;
+}
+
+.my-world__equipped-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-round);
+  background: linear-gradient(160deg, #fff5f9 0%, #ffe3ee 100%);
+  border: 2px solid #ffbcd9;
+  box-shadow: var(--shadow-sm);
+  font-size: 1.4rem;
+  animation: badge-pop 380ms var(--ease-bounce) both;
+}
+
+.my-world__equipped-empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ---- Reward grids (shared by outfits / accessories / furniture) ---- */
+
+.my-world__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: var(--space-4);
+}
+
+.my-world__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-primary);
+  padding: var(--space-4) var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 3px solid var(--color-border);
+  background: var(--color-surface-tint);
+  text-align: center;
+  transition: transform var(--transition-fast) var(--ease-out-soft), box-shadow var(--transition-fast),
+    border-color var(--transition-fast), background-color var(--transition-fast), opacity var(--transition-fast);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+.my-world__card:hover:not(.my-world__card--locked) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-contact-md), var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+.my-world__card:active:not(.my-world__card--locked) {
+  transform: translateY(var(--lift-sm)) scale(0.96);
+}
+
+.my-world__card-emoji {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.my-world__card-label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ---- Locked (not-yet-earned) state: dimmed + gentle framing, never
+   red/harsh. The card stays a real, tappable <button> — tapping it shows a
+   warm toast rather than doing nothing or looking broken. ---- */
+
+.my-world__card--locked {
+  background: var(--color-surface);
+  opacity: 0.6;
+  cursor: default;
+}
+
+.my-world__card--locked .my-world__card-label {
+  color: var(--color-text-muted);
+}
+
+.my-world__card-caption {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* ---- Equipped state (outfits / accessories): colored border + checkmark
+   badge, same visual spirit as the profile-create avatar picker's
+   selected state. ---- */
+
+.my-world__card--active {
+  border-color: var(--color-primary);
+  background: var(--color-surface-alt);
+}
+
+/* ---- Per-kind color identity: owned items already read as colorful and
+   alive before anything is even equipped, instead of uniform tan until
+   tapped — outfits=pink (dress-up), furniture=teal (cozy room),
+   map themes=purple (magic sky). Equipped/active goes a shade richer, via
+   the shared .my-world__card--active rule above plus these kind-specific
+   overrides (2-class selectors beat the 1-class shared rule on
+   specificity, so no explicit ordering trick is needed). ---- */
+
+.my-world__card--outfit:not(.my-world__card--locked) {
+  border-color: #ffbcd9;
+  background: linear-gradient(160deg, #fff5f9 0%, #ffe3ee 100%);
+}
+.my-world__card--outfit.my-world__card--active {
+  border-color: var(--color-accent-pink);
+  background: linear-gradient(160deg, #ffeef6 0%, #ffcfe4 100%);
+}
+
+.my-world__card--furniture:not(.my-world__card--locked) {
+  border-color: #9de8db;
+  background: linear-gradient(160deg, #eefdfa 0%, #d3f6ee 100%);
+}
+
+.my-world__card--mapTheme:not(.my-world__card--locked) {
+  border-color: #d2bffb;
+  background: linear-gradient(160deg, #f7f2ff 0%, #e6d9fd 100%);
+}
+.my-world__card--mapTheme.my-world__card--active {
+  border-color: var(--color-accent-purple);
+  background: linear-gradient(160deg, #f0e7ff 0%, #dac6fc 100%);
+}
+
+.my-world__card--outfit.my-world__card--active::after,
+.my-world__card--accessory.my-world__card--active::after,
+.my-world__card--mapTheme.my-world__card--active::after {
+  content: '✓';
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-round);
+  background: var(--color-success);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  animation: badge-pop 420ms var(--ease-bounce) 60ms both;
+}
+
+/* ---- Medals ("המדליות שלי") — a trophy-shelf, not a status-report grid:
+   a big round badge on a "ribbon" instead of the square reward-card shape
+   used for outfits/furniture/map-themes, since these aren't tappable
+   rewards to equip, they're achievements to admire. Earned medals sort
+   first (buildMedalsSection.js) so a child sees wins before locked goals. */
+
+.my-world__medals-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.my-world__medals-progress {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: var(--color-accent-yellow-dark);
+  background: linear-gradient(160deg, #fff6df 0%, #ffe9b3 100%);
+  border: 2px solid var(--color-accent-yellow);
+  border-radius: var(--radius-round);
+  padding: var(--space-1) var(--space-4);
+}
+
+.my-world__grid--medals {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: var(--space-5) var(--space-4);
+  padding-top: var(--space-2);
+}
+
+.my-world__medal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  cursor: default;
+  animation: pop 420ms var(--ease-bounce) both;
+}
+
+.my-world__medal-badge {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.6rem;
+  line-height: 1;
+  border: 4px solid var(--color-border);
+  background: var(--color-surface-tint);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-sm);
+}
+
+.my-world__medal-card--locked .my-world__medal-badge {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.my-world__medal-card--silver .my-world__medal-badge {
+  border-color: #b6c0cc;
+  background: linear-gradient(160deg, #f6f8fa 0%, #d9e0e7 100%);
+  box-shadow: var(--shadow-contact-sm), var(--shadow-md);
+}
+
+.my-world__medal-card--gold .my-world__medal-badge {
+  border-color: #e0ac3a;
+  background: linear-gradient(160deg, #fffaf0 0%, #fbe3a8 100%);
+  box-shadow: var(--shadow-contact-md), var(--shadow-lg);
+  /* The single spot of extra motion in this section — a one-shot shine
+     sweep on mount, not a continuous loop, so gold reads as "special"
+     without every card in the shelf being busy at once. */
+  animation: my-world-medal-shine 1.8s ease-out 400ms both;
+}
+
+@keyframes my-world-medal-shine {
+  0% {
+    box-shadow: var(--shadow-contact-md), var(--shadow-lg), 0 0 0 0 rgba(224, 172, 58, 0.6);
+  }
+  70% {
+    box-shadow: var(--shadow-contact-md), var(--shadow-lg), 0 0 0 14px rgba(224, 172, 58, 0);
+  }
+  100% {
+    box-shadow: var(--shadow-contact-md), var(--shadow-lg), 0 0 0 0 rgba(224, 172, 58, 0);
+  }
+}
+
+.my-world__medal-label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.my-world__medal-caption {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.my-world__medal-card--gold .my-world__medal-caption {
+  color: var(--color-accent-yellow-dark);
+}
+.my-world__medal-card--silver .my-world__medal-caption {
+  color: #7c8894;
+}
+
+/* ---- Furniture: multiple pieces can be placed at once, so instead of a
+   single equipped state every owned card always shows a checkmark —
+   outline when not placed, filled when placed. ---- */
+
+.my-world__card-check {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-round);
+  border: 2px solid var(--color-border);
+  color: transparent;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.my-world__card-check--filled {
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  color: #fff;
+  animation: badge-pop 420ms var(--ease-bounce) 60ms both;
+}
+
+.my-world__card--furniture .my-world__card-check--filled {
+  background: var(--color-accent-teal);
+  border-color: var(--color-accent-teal-dark);
+}
+
+/* ---- Juice: small scale-pop on the tile immediately after a successful
+   equip/unequip/place tap. ---- */
+
+.my-world__card--pop {
+  animation: badge-pop 380ms var(--ease-bounce);
+}
+
+/* ---- Room preview ----
+   The room-scene.png background is a fixed physical illustration (not
+   mirrored per text direction), so each item's position below is chosen
+   to match actual features in that image (e.g. the small dresser painted
+   into its right edge) rather than derived generically. Since this app is
+   RTL-only, inset-inline-start reliably means "physical right" and
+   inset-inline-end means "physical left" everywhere, so logical properties
+   still describe fixed image-relative spots correctly without any
+   direction-flip risk. */
+
+.my-world__room-preview {
+  position: relative;
+  min-height: 220px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  /* A candy-colored frame (teal/pink/yellow) instead of a plain edge —
+     reads as a treasured diorama the child built, not a form-field
+     preview box. */
+  border: 5px solid transparent;
+  background:
+    linear-gradient(var(--color-surface-alt), var(--color-surface-alt)) padding-box,
+    linear-gradient(135deg, var(--color-accent-teal), var(--color-accent-pink), var(--color-accent-yellow)) border-box;
+  box-shadow: var(--shadow-md);
+}
+
+.my-world__room-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('../../assets/images/my-world/room-scene.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.my-world__room-preview--fallback-bg {
+  background: linear-gradient(180deg, var(--color-surface-tint) 0%, var(--color-surface) 100%);
+  border: 2px dashed var(--color-border);
+}
+.my-world__room-preview--fallback-bg::before {
+  content: none;
+}
+
+/* Real furniture cutout art (assets/images/my-world/furniture/*.png,
+   flat-vector style matching the room, generated on a magenta backdrop and
+   chroma-keyed transparent via tools/Remove-MagentaBackground.ps1) — not
+   emoji. Sized by `width` with height auto so each item's own aspect ratio
+   is preserved; emoji font-size scaling couldn't give real, controllable
+   proportions (a font glyph's visible shape fills only part of its em box
+   in a way that's not stylistically controllable), so real per-item art
+   was worth the extra generation + chroma-key step. Falls back to the
+   original emoji (via createImageWithFallback's built-in fallback) if an
+   image is ever missing. */
+.my-world__room-item {
+  position: absolute;
+  display: block;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+  animation: pop 420ms var(--ease-bounce) both;
+  cursor: grab;
+  /* Drag is driven entirely by Pointer Events (MyWorldScreen.js) — without
+     this, touch browsers intercept the drag gesture as a page scroll
+     instead of handing pointermove events to the element. */
+  touch-action: none;
+}
+
+.my-world__room-item--dragging {
+  cursor: grabbing;
+  z-index: 5;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35));
+  transform: scale(1.08);
+}
+
+.my-world__room-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Bottom-left open floor area. Sized largest — a bed should read as the
+   room's biggest piece of furniture, not a small icon. */
+.my-world__room-item[data-item='furniture-sparkly-bed'] {
+  inset-inline-end: 6%;
+  inset-block-end: 2%;
+  width: 64%;
+  font-size: 5rem;
+}
+
+/* Wall space left of the window. */
+.my-world__room-item[data-item='furniture-magic-frame'] {
+  inset-inline-end: 12%;
+  inset-block-start: 14%;
+  width: 24%;
+  font-size: 2.6rem;
+}
+
+/* Narrow floor strip between the window and the dresser. */
+.my-world__room-item[data-item='furniture-blooming-plant'] {
+  inset-inline-start: 24%;
+  inset-block-end: 3%;
+  width: 26%;
+  font-size: 2.6rem;
+}
+
+/* Sits on the dresser's top surface. */
+.my-world__room-item[data-item='furniture-magic-lamp'] {
+  inset-inline-start: 6%;
+  inset-block-start: 51%;
+  width: 18%;
+  font-size: 2.2rem;
+}
+
+.my-world__room-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* ---- Cursor-sparkle trail (MyWorldScreen.js's spawnCursorSparkle) — a
+   little star pops at the pointer position and rises/fades/spins away.
+   Fixed positioning since it's spawned at raw clientX/clientY, appended to
+   <body> rather than any scrolling container. Purely decorative: aria-hidden,
+   pointer-events:none, self-removing via a matching setTimeout in JS
+   (consistent with this project's other short-lived decor sprites, e.g.
+   world-map critters' tap-burst). ---- */
+.my-world__cursor-star {
+  position: fixed;
+  z-index: var(--z-overlay);
+  font-size: 1.1rem;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: my-world-star-rise 700ms ease-out both;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes my-world-star-rise {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--star-drift, 0px)), calc(-50% - 34px)) scale(1.1) rotate(90deg);
+  }
+}
+
+@media (max-width: 599px) {
+  .my-world__card-emoji {
+    font-size: 2rem;
+  }
+
+  .my-world__section {
+    padding: var(--space-4);
+  }
+}
