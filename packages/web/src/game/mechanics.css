@@ -583,7 +583,16 @@
      mid-air over the middle of a lake does not. */
   right: -4%;
   inline-size: clamp(160px, 26vh, 260px);
-  block-size: clamp(160px, 26vh, 260px);
+  /*
+   * THE GEAR BOX IS THE SPRITE'S BOX. 599x869 is the rod PNG's own aspect.
+   *
+   * It was square before, while the image inside it was `width: 100%` with auto
+   * height — so the image was half again as tall as the box it sat in, and the
+   * line's `top: 7%` and the rod's tip were percentages of two DIFFERENT
+   * rectangles. They agreed at no size. Matching the box to the sprite makes
+   * one set of percentages mean one thing.
+   */
+  aspect-ratio: 599 / 869;
   pointer-events: none;
   z-index: 4;
   /* Long enough that the bobber rests at the height the stones float at, so
@@ -620,10 +629,11 @@
 .fishing__rod {
   inline-size: 100%;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
-  /* The TIP, not the handle. A rod pivoting at its tip keeps the point the line
-     hangs from perfectly still, through both the idle sway and the bend of a
-     catch — so the line can never detach from the rod it hangs off. */
-  transform-origin: 91% 7%;
+  /* The TIP, not the handle, and the same measured point the line hangs from —
+     in the sprite's own unmirrored coordinates. A rod pivoting exactly at its
+     tip keeps that point still through both the idle sway and the bend of a
+     catch, so the line can never detach from the rod it hangs off. */
+  transform-origin: 95.9% 2.9%;
   animation: rod-sway 6s ease-in-out infinite;
 }
 
@@ -639,18 +649,33 @@
  * Logical properties are for things that should mirror with the text; a painted
  * rod tip is not one of them.
  */
+/*
+ * 4.1% / 2.9% is MEASURED, not estimated.
+ *
+ * The painted tip of the rod PNG is the topmost opaque pixel: (95.9%, 2.9%) of
+ * the sprite. Mirrored, that lands at 100% - 95.9% = 4.1% from the left. The
+ * previous 9% / 7% was a guess at where the tip "looked like" it was, and it
+ * left the line starting beside the rod rather than on it.
+ *
+ * If the rod sprite is ever regenerated, re-measure: find the first opaque row
+ * and take its x. Do not eyeball it — a few percent is invisible in the CSS and
+ * obvious on screen.
+ */
 .fishing__tip {
   position: absolute;
-  top: 7%;
-  left: 9%;                  /* the mirrored sprite's tip corner */
+  top: 2.9%;
+  left: 4.1%;
   inline-size: 0;
   block-size: 0;
 }
 
 .fishing__line {
   position: absolute;
-  top: 7%;
-  left: 9%;
+  top: 2.9%;
+  left: 4.1%;
+  /* Half the line's own width, so its CENTRE sits on the anchor point rather
+     than its left edge. */
+  margin-left: -1px;
   inline-size: 2px;
   block-size: var(--line-len);
   background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.45));
