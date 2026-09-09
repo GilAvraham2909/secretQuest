@@ -33,7 +33,37 @@ export interface ContentPack {
   readonly tasks: readonly TaskTemplate[];
   readonly resolver: ContentResolver;
   readonly taskById: ReadonlyMap<string, TaskTemplate>;
+  /**
+   * The copy line as authored, tokens unsubstituted. Exists so a test can
+   * compare a rendered line against its own template and catch a token that
+   * resolved to nothing — a blank reads as finished copy on screen, which is
+   * how three broken lines survived review.
+   */
+  rawCopyText(copyId: string): string | undefined;
 }
+
+/**
+ * The word pictures, bundled.
+ *
+ * Resolved HERE rather than in the mechanic, for the same reason OptionView
+ * carries no audioRef: "matara.png" would hand a mechanic the content identity
+ * that the opaque optionId exists to hide, and a mechanic that can read which
+ * picture is which can special-case it. What reaches the mechanic is a built
+ * asset URL, hashed in a production build.
+ *
+ * Eager, because a round must draw all of its options in the same frame — a
+ * lazily-fetched picture would pop in after the others and draw the eye to
+ * whichever option happened to load last.
+ */
+const WORD_IMAGE_URLS = import.meta.glob('../../../../assets/images/words/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
+const wordImageByFile = new Map(
+  Object.entries(WORD_IMAGE_URLS).map(([path, url]) => [path.split('/').pop()!, url]),
+);
 
 interface CopyRow {
   textHe: string;
@@ -70,6 +100,30 @@ function loadTasks(): TaskTemplate[] {
   }));
 }
 
+/**
+ * The values a copy template may interpolate, per spec 1.6's closed-set rule.
+ * The names match the {{tokens}} in copy.csv exactly, and the content linter
+ * checks the same table — see the token-resolvable rule in lint.ts.
+ *
+ * These used to be two loose optional fields with {{word}} reading whatever
+ * happened to be in `label`. That silently produced "הצליל מתחיל כמו במילה
+ * ממממ" for a letter-sound hint (the stretched sound, not the example word),
+ * an empty "מצא את המילה שמתחילה בצליל " for every opening-sound prompt, and a
+ * literal "{{stretched_sound}}" on screen — none of which anything caught,
+ * because no mechanic hosted those tasks yet.
+ */
+interface CopyTokens {
+  letter_name?: string;
+  letter_glyph?: string;
+  /** The bare consonant sound: מ. */
+  sound?: string;
+  /** The stretched sound a child hears: ממממ. */
+  stretched_sound?: string;
+  /** A word from the approved §8.3 bank, and only from there. */
+  word?: string;
+  combo?: string;
+}
+
 /** Everything a content id can be, flattened for lookup. */
 interface ContentEntry {
   kind: OptionKind;
@@ -77,53 +131,87 @@ interface ContentEntry {
   imageRef?: string;
   audioRef?: string;
   label: string;
-  /** The pointed letter NAME, used to fill {{letter_name}} in prompts. */
-  letterName?: string;
-  sound?: string;
+  tokens: CopyTokens;
 }
 
 function buildIndex(): Map<ContentId, ContentEntry> {
   const idx = new Map<ContentId, ContentEntry>();
+
+  // Words and letter-sounds reference each other — a sound names its example
+  // word, a word names its opening sound — so both tables are read before
+  // either is turned into an entry.
+  const wordRows = parseCsv(wordsCsv);
+  const soundRows = parseCsv(soundsCsv);
+  const stretchedBySoundId = new Map(soundRows.map((r) => [r.content_id!, r.stretched_he!]));
+  const wordTextById = new Map(wordRows.map((r) => [r.content_id!, r.text_he!]));
+
+  const letterOf = (contentId: string) =>
+    LETTERS_BY_ID[contentId.replace('letter:', '') as keyof typeof LETTERS_BY_ID];
 
   for (const l of LETTERS) {
     idx.set(l.contentId, {
       kind: 'glyph',
       glyph: l.glyph,
       label: l.nameHe,
-      letterName: l.nameHe,
-      sound: l.baseSound ?? undefined,
       audioRef: `name-${l.letterId}.mp3`,
+      tokens: {
+        letter_name: l.nameHe,
+        letter_glyph: l.glyph,
+        sound: l.baseSound ?? undefined,
+      },
     });
   }
 
   for (const c of NIQQUD_COMBOS) {
+    const letter = LETTERS_BY_ID[c.letterId];
     idx.set(c.contentId, {
       kind: 'glyph',
       glyph: c.glyph,
       label: c.glyph,
-      letterName: LETTERS_BY_ID[c.letterId].nameHe,
       audioRef: `combo-${c.letterId}-${c.mark}.mp3`,
+      tokens: {
+        combo: c.glyph,
+        letter_name: letter.nameHe,
+        letter_glyph: letter.glyph,
+      },
     });
   }
 
-  for (const row of parseCsv(wordsCsv)) {
+  for (const row of wordRows) {
+    const letter = letterOf(row.root_letter_id!);
     idx.set(row.content_id!, {
       kind: 'image',
-      imageRef: row.image!,
+      imageRef: wordImageByFile.get(row.image!),
       label: row.text_he!,
       audioRef: row.audio_word!,
+      tokens: {
+        word: row.text_he!,
+        letter_name: letter?.nameHe,
+        letter_glyph: letter?.glyph,
+        // The opening SOUND, not the word's own text — this is what spec 8.2's
+        // "מצא את המילה שמתחילה בצליל [צליל]" is asking about.
+        sound: letter?.baseSound ?? undefined,
+        stretched_sound: stretchedBySoundId.get(row.opening_sound_id!),
+      },
     });
   }
 
-  for (const row of parseCsv(soundsCsv)) {
-    const letterId = row.root_letter_id!.replace('letter:', '') as keyof typeof LETTERS_BY_ID;
+  for (const row of soundRows) {
+    const letter = letterOf(row.root_letter_id!);
     idx.set(row.content_id!, {
       kind: 'glyph',
-      glyph: LETTERS_BY_ID[letterId]?.glyph,
+      glyph: letter?.glyph,
       label: row.stretched_he!,
-      letterName: LETTERS_BY_ID[letterId]?.nameHe,
-      sound: row.stretched_he,
       audioRef: row.audio_sound!,
+      tokens: {
+        letter_name: letter?.nameHe,
+        letter_glyph: letter?.glyph,
+        sound: letter?.baseSound ?? undefined,
+        stretched_sound: row.stretched_he!,
+        // Spec 7.4's hint is "הצליל מתחיל כמו במילה [מילה מוכרת]", and the
+        // spec is explicit that only bank words may appear there.
+        word: wordTextById.get(row.example_word_id!),
+      },
     });
   }
 
@@ -149,12 +237,17 @@ export function loadContentPack(): ContentPack {
 
       // Closed-set substitution only — spec 1.6. Every value here comes from a
       // known, finite table, so one whole-sentence recording per value exists.
+      //
+      // An unresolvable token is left VISIBLE rather than replaced with an
+      // empty string. A blank is indistinguishable from correct copy on screen,
+      // which is how "מצא את המילה שמתחילה בצליל " survived; the raw {{token}}
+      // is impossible to miss, and the content linter fails the build before it
+      // can reach a child anyway.
       const textHe = row.textHe
-        .replace(/\{\{\s*letter_name\s*\}\}/g, entry?.letterName ?? '')
-        .replace(/\{\{\s*letter_glyph\s*\}\}/g, entry?.glyph ?? '')
-        .replace(/\{\{\s*sound\s*\}\}/g, entry?.sound ?? '')
-        .replace(/\{\{\s*word\s*\}\}/g, entry?.label ?? '')
-        .replace(/\{\{\s*combo\s*\}\}/g, entry?.glyph ?? '')
+        .replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (whole, token: string) => {
+          const value = entry?.tokens[token as keyof CopyTokens];
+          return value ?? whole;
+        })
         .trim();
 
       // A templated audio ref names one recording per value, never a splice.
@@ -170,5 +263,6 @@ export function loadContentPack(): ContentPack {
     tasks,
     resolver,
     taskById: new Map(tasks.map((t) => [t.taskId, t])),
+    rawCopyText: (copyId) => copy.get(copyId)?.textHe,
   };
 }

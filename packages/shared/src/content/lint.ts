@@ -70,6 +70,35 @@ const CLOSED_SET_TOKENS = new Set([
   'combo',
 ]);
 
+/**
+ * Which tokens a target of each content kind can actually fill.
+ *
+ * Rule 6b only asks whether a token names a closed set. That is not the same
+ * question as whether THIS task's target can supply it, and the gap between the
+ * two shipped three broken lines: an opening-sound prompt that rendered as
+ * "מצא את המילה שמתחילה בצליל " with nothing after it, a hint that printed a
+ * literal {{stretched_sound}}, and a letter-sound hint that named the stretched
+ * sound where the spec asks for an example word. All three linted clean and all
+ * three were invisible, because no mechanic hosted those tasks yet.
+ *
+ * This table is the same one the web content pack builds its entries from. If
+ * you add a token there, add it here, or the linter stops being evidence.
+ */
+const TOKENS_BY_CONTENT_KIND: Readonly<Record<string, ReadonlySet<string>>> = {
+  letter: new Set(['letter_name', 'letter_glyph', 'sound']),
+  letter_sound: new Set(['letter_name', 'letter_glyph', 'sound', 'stretched_sound', 'word']),
+  word: new Set(['word', 'letter_name', 'letter_glyph', 'sound', 'stretched_sound']),
+  niqqud_combo: new Set(['combo', 'letter_name', 'letter_glyph']),
+};
+
+const TASK_COPY_FIELDS = [
+  'prompt_copy',
+  'feedback_correct_copy',
+  'feedback_retry_copy',
+  'hint1_copy',
+  'hint2_copy',
+] as const;
+
 export function lintContent(src: ContentSources): LintResult {
   const diagnostics: Diagnostic[] = [];
   const add = (
@@ -208,6 +237,36 @@ export function lintContent(src: ContentSources): LintResult {
       if (!CLOSED_SET_TOKENS.has(token)) {
         add('error', 'open-set-token-in-speech', 'copy.csv', row,
           `"${row.copy_id}" speaks {{${token}}}, which is not a closed set — it cannot be pre-recorded (spec 1.6)`);
+      }
+    }
+  }
+
+  // ── Rule 6c: every token a task speaks must be fillable by its target ───
+  for (const t of tasks) {
+    const targetId = t.target_content_id ?? '';
+    const kind = targetId.split(':')[0] ?? '';
+    const available = TOKENS_BY_CONTENT_KIND[kind];
+    if (!available) continue; // an unknown target is rule 1's problem, not this one
+
+    // Alef is the one letter with no consonant sound (spec 1.5 lists it as
+    // "ללא עיצור מלא"), so it cannot fill {{sound}} even though every other
+    // letter can. A silent blank here would read as a finished sentence.
+    const soundless = targetId === 'letter:alef';
+
+    for (const field of TASK_COPY_FIELDS) {
+      const copyId = t[field];
+      if (!copyId) continue;
+      const row = copyById.get(copyId);
+      if (!row) continue; // rule 1 already reported the dangling reference
+
+      for (const token of extractTokens(row.text_he ?? '')) {
+        if (!available.has(token)) {
+          add('error', 'token-not-resolvable', 'tasks.csv', t,
+            `${field} "${copyId}" uses {{${token}}}, which a ${kind} target cannot fill`);
+        } else if (token === 'sound' && soundless) {
+          add('error', 'token-not-resolvable', 'tasks.csv', t,
+            `${field} "${copyId}" uses {{sound}}, but "${targetId}" has no consonant sound (spec 1.5)`);
+        }
       }
     }
   }
