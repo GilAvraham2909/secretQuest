@@ -1,0 +1,84 @@
+copy_id,text_he,audio_ref,tokens,voiced,spec_ref,notes
+bal.prompt.find_letter,"פוצץ את הבלון עם האות {{letter_name}}",bal-prompt-find-{{letter_name}}.mp3,letter_name,TRUE,4.2,"One whole-sentence recording per letter. Never a stem plus a spliced name."
+bal.ok.found,"מצאת את {{letter_name}}!",bal-ok-found-{{letter_name}}.mp3,letter_name,TRUE,4.2,
+bal.retry.look_again,"בוא נסתכל שוב על הסימנים.",bal-retry-look-again.mp3,,TRUE,4.4,"Balloon bobs on its string; it never pops or disappears."
+fis.prompt.fish_letter,"דוג את האות {{letter_name}}",fis-prompt-fish-{{letter_name}}.mp3,letter_name,TRUE,5.2,
+fis.ok.caught,"תפסת את {{letter_name}}!",fis-ok-caught-{{letter_name}}.mp3,letter_name,TRUE,5.2,
+fis.retry.swam_away,"האות הזאת שוחה לה. נסה לדוג סימן אחר.",fis-retry-swam-away.mp3,,TRUE,5.4,
+trn.prompt.open_gate,"פתח את הדרך עם האות {{letter_name}}",trn-prompt-open-{{letter_name}}.mp3,letter_name,TRUE,6.3,
+trn.ok.gate_opened,"השער נפתח!",trn-ok-gate-opened.mp3,,TRUE,6.2,
+trn.retry.still_closed,"השער הזה עדיין סגור. בוא ננסה דרך אחרת.",trn-retry-still-closed.mp3,,TRUE,6.4,
+snd.prompt.which_letter,"איזו אות עושה את הצליל הזה?",snd-prompt-which-letter.mp3,,TRUE,7.2,"The sound itself plays as a separate clip right after."
+snd.ok.found,"מצאת את {{letter_glyph}}",snd-ok-found-{{letter_glyph}}.mp3,letter_glyph,TRUE,7.3,
+snd.retry.listen_again,"בוא נקשיב שוב לצליל.",snd-retry-listen-again.mp3,,TRUE,7.4,
+pho.prompt.same_start,"מצא את המילה שמתחילה בצליל {{sound}}",pho-prompt-same-start-{{sound}}.mp3,sound,TRUE,8.2,
+pho.ok.found,"נכון! {{word}} מתחילה בצליל {{sound}}",pho-ok-found-{{word}}.mp3,word|sound,TRUE,8.2,"Word and sound are both closed sets, so one recording per word covers it."
+pho.retry.listen_first,"בוא נקשיב שוב לצליל הראשון.",pho-retry-listen-first.mp3,,TRUE,8.5,
+nik.prompt.which_combo,"איזה צירוף מתאים לצליל?",nik-prompt-which-combo.mp3,,TRUE,9.2,
+nik.ok.found,"מצאת את {{combo}}",nik-ok-found-{{combo}}.mp3,combo,TRUE,9.4,
+nik.retry.listen_again,"בוא נקשיב שוב לצירוף.",nik-retry-listen-again.mp3,,TRUE,9.6,
+hint.listen_name,"הקשב לשם האות: {{letter_name}}",hint-listen-name-{{letter_name}}.mp3,letter_name,TRUE,4.4,
+hint.starts_with_sound,"האות שאנחנו מחפשים מתחילה בצליל {{sound}}",hint-starts-with-{{sound}}.mp3,sound,TRUE,4.4,
+hint.replay_sound,"בוא נקשיב שוב לצליל.",hint-replay-sound.mp3,,TRUE,7.4,
+hint.sound_like_word,"הצליל מתחיל כמו במילה {{word}}",hint-sound-like-{{word}}.mp3,word,TRUE,7.4,"Only words from the approved bank may appear here."
+hint.stretch_opening,"{{stretched_sound}}… {{word}}",hint-stretch-{{word}}.mp3,stretched_sound|word,TRUE,8.5,"ONE recording, not two queued clips — spec 1.6 rule b."
+hint.highlight_image,"חפש את הסימן שמתחיל בצליל הזה.",hint-highlight-image.mp3,,TRUE,20,
+hint.replay_combo,"בוא נקשיב שוב לצירוף.",hint-replay-combo.mp3,,TRUE,9.6,
+hint.highlight_letter,"הקשב לצירוף והסתכל על האות.",hint-highlight-letter.mp3,,TRUE,9.6,
+ladder.offer_hint,"רוצה רמז קטן?",ladder-offer-hint.mp3,,TRUE,11.3,
+ladder.offer_yes,"כן",,,FALSE,11.3,"Button label."
+ladder.offer_no,"לא עכשיו",,,FALSE,11.3,"Button label. Declining is respected, never nagged."
+ladder.reduce_options,"עכשיו נשארו רק שתי אפשרויות.",ladder-reduce-options.mp3,,TRUE,11.4,
+ladder.demonstrate,"תראה איך זה עובד, ואז נסה אתה.",ladder-demonstrate.mp3,,TRUE,11.5,
+ladder.simpler_task,"בוא נתחיל מצעד קטן.",ladder-simpler-task.mp3,,TRUE,11.6,
+ladder.retry_generic,"בוא ננסה שוב.",ladder-retry-generic.mp3,,TRUE,20,
+idle.nudge,"הסימנים מחכים לך.",idle-nudge.mp3,,TRUE,16.1,
+idle.repeat_offer,"רוצה שאחזור על ההוראה?",idle-repeat-offer.mp3,,TRUE,16.1,
+welcome.title,"המסע הסודי",,,FALSE,2.1,"On-screen title."
+welcome.narration,"ברוכים הבאים למסע הסודי!",welcome-narration.mp3,,TRUE,2.1,
+welcome.start_button,"מתחילים",,,FALSE,2.1,
+welcome.adventure_begins,"ההרפתקה מתחילה!",welcome-adventure-begins.mp3,,TRUE,2.1,
+profile.name_prompt,"איך נקרא לך במסע?",profile-name-prompt.mp3,,TRUE,2.2,
+profile.name_narration,"בחר שם למסע שלך.",profile-name-narration.mp3,,TRUE,2.2,
+profile.greeting,"נעים להכיר! יוצאים לדרך.",profile-greeting.mp3,,TRUE,2.2,"Spec 1.6: the child's name is NEVER spoken — it cannot be pre-recorded."
+profile.greeting_text,"נעים להכיר, {{child_name}}!",,child_name,FALSE,2.2,"On-screen only. The name is fine in text, never in audio."
+profile.no_name,"אפשר לבחור שם אחר כך. בוא נתחיל!",profile-no-name.mp3,,TRUE,2.2,
+avatar.prompt,"מי יצטרף אליך למסע?",avatar-prompt.mp3,,TRUE,2.3,
+avatar.narration,"בחר את החבר או החברה שילוו אותך.",avatar-narration.mp3,,TRUE,2.3,
+avatar.chosen,"בחירה מצוינת!",avatar-chosen.mp3,,TRUE,2.3,
+world.title,"העולם שלך",,,FALSE,3,
+world.narration,"זה המקום שלך. כאן תוכל לבנות, לגלות ולפתוח מקומות חדשים.",world-narration.mp3,,TRUE,3,
+world.gate_hint,"השער הזה מוביל למקומות סודיים. כדי לפתוח אותו, נצטרך למצוא כמה סימנים.",world-gate-hint.mp3,,TRUE,3,
+world.start_button,"יוצאים למשימה",,,FALSE,3,
+reward.coin,"קיבלת מטבע!",reward-coin.mp3,,TRUE,12.1,"Never a number — a count cannot be pre-recorded."
+reward.unlock,"אספת מספיק סימנים כדי לשדרג את המקום שלך!",reward-unlock.mp3,,TRUE,12.2,
+reward.gate_opens,"השער נפתח!",reward-gate-opens.mp3,,TRUE,12.3,
+reward.new_place,"מקום חדש מחכה לך.",reward-new-place.mp3,,TRUE,12.3,
+adventure.title,"תעלומת הסימנים האבודים",,,FALSE,10.2,
+adventure.opening,"קיבלנו הודעה מסתורית!",adventure-opening.mp3,,TRUE,10.2,
+adventure.narration,"כמה סימנים נעלמו מהמפה. נצטרך למצוא אותם.",adventure-narration.mp3,,TRUE,10.2,
+adventure.target,"הסימן שאנחנו מחפשים הוא {{letter_name}}",adventure-target-{{letter_name}}.mp3,letter_name,TRUE,10.2,"Never says the child is struggling."
+adventure.first_clue,"מצאת רמז ראשון!",adventure-first-clue.mp3,,TRUE,10.3,
+adventure.sound_led,"הצליל הוביל אותנו למקום הנכון!",adventure-sound-led.mp3,,TRUE,10.4,
+adventure.trace_prompt,"עזור לדמות לצייר את הסימן.",adventure-trace-prompt.mp3,,TRUE,10.5,
+adventure.trace_glow,"הסימן מתחיל להאיר!",adventure-trace-glow.mp3,,TRUE,10.5,
+adventure.trace_offpath,"בוא נעקוב אחרי האור.",adventure-trace-offpath.mp3,,TRUE,10.5,"Off-path is never failure — only guidance."
+adventure.box_opened,"התיבה נפתחה!",adventure-box-opened.mp3,,TRUE,10.6,
+adventure.closing,"הסימן חזר למפה!",adventure-closing.mp3,,TRUE,10.7,
+adventure.complete,"המשימה הושלמה",,,FALSE,10.7,
+ending.title,"היום התקדמת במסע!",,,FALSE,13.1,
+ending.message,"מצאת סימנים, פתחת דרך ובנית משהו חדש.",ending-message.mp3,,TRUE,13.1,
+ending.continue,"להמשיך לשחק",,,FALSE,13.2,
+ending.visit_world,"לבקר בעולם שלי",,,FALSE,13.2,
+ending.finish,"לסיים להיום",,,FALSE,13.2,
+ending.farewell,"העולם שלך יחכה לך בפעם הבאה!",ending-farewell.mp3,,TRUE,13.2,
+returning.welcome_back,"ברוך שובך! המשימה שלך מחכה לך.",returning-welcome-back.mp3,,TRUE,16.4,
+parent.title,"התקדמות במסע של {{child_name}}",,child_name,FALSE,14.1,"Parent screen is text only — never narrated to the child."
+parent.hint_explainer,"רמזים הם חלק רגיל מהמשחק. המערכת משתמשת בהם כדי לאפשר לילד להמשיך, להצליח ולצבור ניסיון.",,,FALSE,14.5,
+parent.status_new,"חדש",,,FALSE,14.4,
+parent.status_practicing,"בתרגול",,,FALSE,14.4,
+parent.status_consistent,"הצלחה עקבית",,,FALSE,14.4,
+parent.col_skill,"מיומנות",,,FALSE,14.3,
+parent.col_status,"סטטוס",,,FALSE,14.3,
+parent.col_exposures,"מספר חשיפות",,,FALSE,14.3,
+parent.col_hints,"שימוש ברמז",,,FALSE,14.3,

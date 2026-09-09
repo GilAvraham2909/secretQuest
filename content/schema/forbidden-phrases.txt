@@ -1,0 +1,44 @@
+# Forbidden phrases — spec §21 (child-facing) and §14.4 (parent-facing).
+#
+# This file is the reason the content linter exists. "Don't say the wrong
+# thing to a child" is otherwise an untestable requirement that degrades the
+# moment someone writes a well-meaning error message. Here it is a build
+# failure.
+#
+# Format: one phrase per line. Lines starting with # are comments.
+# A line beginning with "parent:" applies ONLY to parent-screen copy.
+# Everything else applies to every string in copy.csv.
+
+# ── §21: the child must never be told they were wrong ────────────────────
+טעית
+לא נכון
+נכשלת
+תשובה שגויה
+לא הצלחת
+טעות
+שגוי
+שגיאה
+
+# ── §21: no assessment vocabulary reaches the child ──────────────────────
+ציון
+מבחן
+בחינה
+אחוז הצלחה
+אחוזי הצלחה
+דירוג
+נכשל
+
+# ── §21: no deficit language about the child ─────────────────────────────
+אתה חלש
+אתה צריך להשתפר
+אתה לא יודע
+
+# ── §14.4: banned on the parent screen specifically ──────────────────────
+# The parent gets a progress picture, never a label attached to their child.
+parent:חלש
+parent:נכשל
+parent:בעייתי
+parent:לא יודע
+parent:מתקשה מאוד
+parent:פיגור
+parent:בעיה

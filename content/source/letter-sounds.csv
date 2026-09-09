@@ -1,0 +1,8 @@
+content_id,root_letter_id,stretched_he,audio_sound,example_word_id,in_mvp,spec_ref
+letter_sound:m,letter:mem,ממממ,sound-stretch-m.mp3,word:matara,TRUE,7.3
+letter_sound:sh,letter:shin,שששש,sound-stretch-sh.mp3,word:shemesh,TRUE,7.3
+letter_sound:r,letter:resh,רררר,sound-stretch-r.mp3,word:rekhev,TRUE,7.3
+letter_sound:d,letter:dalet,דדדד,sound-stretch-d.mp3,word:dag,TRUE,7.3
+letter_sound:l,letter:lamed,לללל,sound-stretch-l.mp3,word:lev,TRUE,7.3
+letter_sound:b,letter:bet,בבבב,sound-stretch-b.mp3,word:balon,TRUE,7.3
+letter_sound:g,letter:gimel,גגגג,sound-stretch-g.mp3,word:gamal,TRUE,7.3

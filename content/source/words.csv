@@ -1,0 +1,9 @@
+﻿content_id,text_he,root_letter_id,opening_sound_id,image,audio_word,audio_stretched,in_mvp,spec_ref
+word:matara,מַטָּרָה,letter:mem,letter_sound:m,matara.png,w-matara.mp3,s-matara.mp3,TRUE,8.3
+word:shemesh,שֶׁמֶשׁ,letter:shin,letter_sound:sh,shemesh.png,w-shemesh.mp3,s-shemesh.mp3,TRUE,8.3
+word:dag,דג,letter:dalet,letter_sound:d,dag.png,w-dag.mp3,s-dag.mp3,TRUE,8.3
+word:rekhev,רֶכֶב,letter:resh,letter_sound:r,rekhev.png,w-rekhev.mp3,s-rekhev.mp3,TRUE,8.3
+word:balon,בַּלוֹן,letter:bet,letter_sound:b,balon.png,w-balon.mp3,s-balon.mp3,TRUE,8.3
+word:gamal,גָּמָל,letter:gimel,letter_sound:g,gamal.png,w-gamal.mp3,s-gamal.mp3,TRUE,8.3
+word:lev,לֵב,letter:lamed,letter_sound:l,lev.png,w-lev.mp3,s-lev.mp3,TRUE,8.3
+word:shablul,שבלול,letter:shin,letter_sound:sh,shablul.png,w-shablul.mp3,s-shablul.mp3,TRUE,8.3
