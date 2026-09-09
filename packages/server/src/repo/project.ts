@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+﻿import { eq, and } from 'drizzle-orm';
 import {
   scoreAll,
   DEFAULT_POLICY,
@@ -56,31 +56,59 @@ export async function projectEvents(
   const ordered = [...batch].sort((a, b) => a.clientSeq - b.clientSeq);
 
   for (const event of ordered) {
-    switch (event.type) {
-      case 'task.presented':
-        await applyTaskPresented(db, child, event);
-        break;
-      case 'task.resolved':
-        await applyTaskResolved(db, child, event);
-        break;
-      case 'attempt.recorded':
-        await applyAttempt(db, child, event);
-        break;
-      case 'hint.emitted':
-        await applyHint(db, child, event);
-        break;
-      default:
-        // Everything else is either narrative (screen.viewed) or handled by a
-        // later milestone (world.*, adventure.*). It stays in the log either
-        // way — the log is the record, this is only the index over it.
-        break;
+    /*
+     * One bad event must not cost the rest of the batch.
+     *
+     * Found by the outbox tests: an event carrying a non-uuid taskInstanceId
+     * made the driver throw, which aborted projection for every event after it
+     * in the same batch. The log itself was fine — it always is, that is the
+     * point of the log — but the dashboard silently lost everything queued
+     * behind the bad row until someone rebuilt.
+     *
+     * The events are already durable by the time we get here, so the safe
+     * response to an unusable one is to skip it loudly and keep going.
+     */
+    try {
+      switch (event.type) {
+        case 'task.presented':
+          await applyTaskPresented(db, child, event);
+          break;
+        case 'task.resolved':
+          await applyTaskResolved(db, child, event);
+          break;
+        case 'attempt.recorded':
+          await applyAttempt(db, child, event);
+          break;
+        case 'hint.emitted':
+          await applyHint(db, child, event);
+          break;
+        default:
+          // Everything else is either narrative (screen.viewed) or handled by a
+          // later milestone (world.*, adventure.*). It stays in the log either
+          // way — the log is the record, this is only the index over it.
+          break;
+      }
+    } catch (error) {
+      console.error(`projection skipped event ${event.eventId} (${event.type})`, error);
     }
   }
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Ids that reach a uuid column must look like uuids before they get there.
+ *
+ * A cast error from the driver is an exception where the honest answer is "this
+ * event is not usable" — and it arrives as a 500-shaped failure rather than as
+ * a skipped row.
+ */
+const usableId = (value: unknown): value is string =>
+  typeof value === 'string' && UUID_RE.test(value);
+
 async function applyTaskPresented(db: Db, child: OwnedChild, event: TelemetryEvent) {
   const p = event.payload as unknown as TaskPresentedPayload;
-  if (!isRecord(p) || typeof p.taskInstanceId !== 'string') return;
+  if (!isRecord(p) || !usableId(p.taskInstanceId)) return;
 
   await db
     .insert(taskInstances)
@@ -106,7 +134,7 @@ async function applyTaskPresented(db: Db, child: OwnedChild, event: TelemetryEve
 
 async function applyTaskResolved(db: Db, child: OwnedChild, event: TelemetryEvent) {
   const p = event.payload as unknown as TaskResolvedPayload;
-  if (!isRecord(p) || typeof p.taskInstanceId !== 'string') return;
+  if (!isRecord(p) || !usableId(p.taskInstanceId)) return;
 
   await db
     .update(taskInstances)
@@ -119,7 +147,7 @@ async function applyTaskResolved(db: Db, child: OwnedChild, event: TelemetryEven
 
 async function applyAttempt(db: Db, child: OwnedChild, event: TelemetryEvent) {
   const p = event.payload as unknown as AttemptRecordedPayload;
-  if (!isRecord(p) || typeof p.attemptId !== 'string') return;
+  if (!isRecord(p) || !usableId(p.attemptId) || !usableId(p.taskInstanceId)) return;
 
   // Re-derive correctness from what the child was actually shown. An attempt
   // whose task instance has not arrived yet is skipped rather than trusted —
@@ -156,7 +184,7 @@ async function applyAttempt(db: Db, child: OwnedChild, event: TelemetryEvent) {
 
 async function applyHint(db: Db, child: OwnedChild, event: TelemetryEvent) {
   const p = event.payload as unknown as HintEmittedPayload;
-  if (!isRecord(p) || typeof p.hintEventId !== 'string') return;
+  if (!isRecord(p) || !usableId(p.hintEventId) || !usableId(p.taskInstanceId)) return;
 
   await db
     .insert(hintEvents)

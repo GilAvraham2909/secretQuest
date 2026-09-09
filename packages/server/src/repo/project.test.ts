@@ -262,6 +262,35 @@ describe('the projection is disposable', () => {
     );
   });
 
+  it('skips an unusable event without costing the rest of the batch', async () => {
+    /*
+     * Regression, found by the outbox tests rather than by review. An event
+     * carrying a non-uuid taskInstanceId made the driver throw, and because the
+     * whole batch was projected inside one try, every event AFTER it was
+     * silently lost from the dashboard — the log was intact, so nothing looked
+     * wrong until someone compared the two.
+     */
+    const good = round({
+      taskId: 'BAL-001', skillId: 'visual_letter_recognition', mechanicId: 'balloon_game',
+      target: 'letter:mem', distractor: 'letter:shin', selected: 'letter:mem',
+      claimsCorrect: true, outcome: 'first_try_correct',
+    });
+
+    const poisoned = ev('task.resolved', {
+      taskInstanceId: 'not-a-uuid',
+      outcome: 'first_try_correct',
+      resolvedAt: new Date().toISOString(),
+    });
+
+    // The bad event sits FIRST, so anything that aborts the loop loses the good
+    // round entirely.
+    await projectEvents(db, child, [poisoned, ...good.events]);
+
+    const tasks = await db.select().from(taskInstances).where(eq(taskInstances.childId, child.id));
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]!.outcome).toBe('first_try_correct');
+  });
+
   it('replaying the same events twice changes nothing', async () => {
     const r = round({
       taskId: 'BAL-001', skillId: 'visual_letter_recognition', mechanicId: 'balloon_game',
