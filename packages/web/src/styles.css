@@ -106,3 +106,63 @@ figcaption {
 code { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; }
 
 .foot { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); }
+
+/* ── developer harness chrome ─────────────────────────────────────────── */
+.topnav {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.6rem 1.25rem; background: #1a1a20; color: #fff;
+  position: sticky; top: 0; z-index: 5;
+}
+.topnav .tag {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+  background: #3a3a46; padding: 0.15rem 0.45rem; border-radius: 4px; color: #cfcfd8;
+}
+.topnav button {
+  margin-inline-start: 0.35rem; padding: 0.35rem 0.8rem; cursor: pointer;
+  background: transparent; color: #cfcfd8; border: 1px solid #3a3a46; border-radius: 6px;
+}
+.topnav button.on { background: #fff; color: #1a1a20; border-color: #fff; font-weight: 700; }
+
+.demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.25rem; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; }
+.panel h2 { margin: 0 0 0.35rem; font-size: 1.1rem; }
+.panel h3 { margin: 1.5rem 0 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+
+.row { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
+.row label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); }
+.row select { padding: 0.4rem; border: 1px solid var(--line); border-radius: 6px; font-size: 1rem; }
+
+.step {
+  padding: 0.9rem 1rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem;
+  background: #eef2ff; border: 1px solid #c7d2fe; margin-bottom: 0.9rem;
+}
+.step--done { background: #e7f7ed; border-color: #a7e0bd; }
+
+.btns { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.btns button {
+  padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: #fff; font-size: 0.9rem;
+}
+.btns button:disabled { opacity: 0.4; cursor: not-allowed; }
+.btns .primary { background: #1a1a20; color: #fff; border-color: #1a1a20; }
+.ghost { margin-top: 1rem; padding: 0.4rem 0.8rem; border: 1px solid var(--line); background: #fff; border-radius: 8px; cursor: pointer; }
+
+.directives { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.directives li { padding: 0.45rem 0.7rem; background: #fbfaf7; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem; }
+.directives .empty, .empty { color: var(--muted); }
+
+.facts { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.25rem 0 0; }
+.facts div { display: flex; flex-direction: column; }
+.facts dt { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.facts dd { margin: 0.15rem 0 0; font-size: 1.1rem; font-weight: 700; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th, td { text-align: start; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--line); }
+th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+
+.badge { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.78rem; white-space: nowrap; }
+.badge--new { background: #eef2ff; color: #3b4fb8; }
+.badge--wip { background: #fff4e0; color: #9a6510; }
+.badge--ok  { background: #e7f7ed; color: #1d7a45; }
+.flag { color: #9a3412; }
+.muted { color: var(--muted); }
