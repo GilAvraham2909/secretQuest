@@ -1,0 +1,225 @@
+/*
+ * Shared mechanic chrome plus the fishing and train scenes.
+ *
+ * The three mechanics deliberately share prompt, help-button and sign-stone
+ * styling: they are one world, and per docs/design-direction.md the sign-stone
+ * is the element that makes that legible. What differs per mechanic is the
+ * scene behind it and how a wrong answer moves.
+ */
+
+.scene--balloon { background-image: url('../../../../assets/images/scenes/balloon-sky.png'); }
+.scene--fishing { background-image: url('../../../../assets/images/scenes/fishing-lake.png'); }
+.scene--train   { background-image: url('../../../../assets/images/scenes/train-canyon.png'); }
+
+.mech-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-inline-size: 1100px;
+  margin-inline: auto;
+  inline-size: 100%;
+  padding-block-start: 2vh;
+}
+
+.mech-prompt {
+  font-size: clamp(1.6rem, 2.6vh, 2.6rem);
+  font-weight: 700;
+  text-align: center;
+  margin-block: 1vh 3vh;
+  /* Niqqud needs headroom or the qamats tail clips. */
+  line-height: 1.35;
+  color: #fdf6e8;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.mech-help {
+  margin-block-start: 2rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.mech-help:disabled { opacity: 0.4; cursor: default; }
+
+/* ── the sign-stone: one object, every mechanic ────────────────────────── */
+
+.stone {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  /* Measured floor for this age group is ~80px; keep well clear of it. */
+  inline-size: clamp(120px, 15vh, 180px);
+  aspect-ratio: 1;
+  animation: stone-bob 5s ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0s);
+  transition: transform 180ms ease;
+}
+.stone:disabled { cursor: default; }
+.stone:hover:not(:disabled) { transform: translateY(-5px) scale(1.03); }
+
+.stone__art {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+
+.stone__glyph {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  /* transform is PHYSICAL. inset-inline-start:50% is right:50% in this RTL app,
+     so the X translate is POSITIVE. This project has paid for the wrong sign. */
+  transform: translate(50%, -50%);
+  font-size: clamp(2.4rem, 6vh, 3.6rem);
+  font-weight: 700;
+  color: #3a2a18;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+/* States. Every one of these is entered only by a directive. */
+.stone--glow-soft .stone__art {
+  filter: drop-shadow(0 0 14px rgba(255, 214, 102, 0.95)) drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+}
+.stone--glow-strong .stone__art,
+.stone--demo .stone__art {
+  filter: drop-shadow(0 0 24px rgba(255, 196, 40, 1)) drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+  animation: pulse 1s ease-in-out infinite;
+}
+.stone--caught, .stone--chosen { animation: lift-away 900ms ease-out forwards; }
+
+@keyframes stone-bob {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-10px) rotate(1deg); }
+}
+/* Wrong answer, spec 5.4: "האות הזאת שוחה לה" — it swims off and comes back.
+   It is never removed and never marked. */
+@keyframes swim-away {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  35%  { transform: translate(-34px, 10px) rotate(-8deg); }
+  70%  { transform: translate(16px, -4px) rotate(4deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.stone--swim-away { animation: swim-away 750ms ease-in-out; }
+
+/* Wrong answer, spec 6.4: "השער הזה עדיין סגור" — the gate rattles and waits. */
+@keyframes rattle {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-7px); }
+  45%      { transform: translateX(6px); }
+  70%      { transform: translateX(-3px); }
+}
+.stone--rattle { animation: rattle 640ms ease-in-out; }
+
+@keyframes lift-away {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  30%  { transform: translateY(-20px) scale(1.12); opacity: 1; }
+  100% { transform: translateY(-150px) scale(0.7); opacity: 0; }
+}
+
+/* ── fishing ───────────────────────────────────────────────────────────── */
+
+.fishing__rod {
+  inline-size: clamp(90px, 12vh, 150px);
+  align-self: flex-end;
+  margin-inline-end: 8%;
+  margin-block-end: -2vh;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+
+.fishing__water {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(1.5rem, 6vw, 5rem);
+  flex-wrap: wrap;
+  min-block-size: min(40vh, 380px);
+  inline-size: 100%;
+}
+
+/* ── train ─────────────────────────────────────────────────────────────── */
+
+.train__track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1rem;
+  inline-size: 100%;
+  min-block-size: min(26vh, 220px);
+}
+
+.train__engine {
+  inline-size: clamp(120px, 18vh, 220px);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  transition: transform 900ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.train__track--open .train__engine { transform: translateX(-40%); }
+
+.train__gate {
+  position: relative;
+  inline-size: clamp(70px, 9vh, 110px);
+  block-size: clamp(110px, 16vh, 180px);
+}
+.train__gate-leaf {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 50%;
+  background: linear-gradient(180deg, #6b4a3a, #4a3128);
+  border: 3px solid #2c1c14;
+  transition: transform 700ms cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+.train__gate-leaf--a { inset-inline-start: 0; border-radius: 8px 0 0 8px; }
+.train__gate-leaf--b { inset-inline-end: 0; border-radius: 0 8px 8px 0; }
+.train__gate--open .train__gate-leaf--a { transform: translateX(-96%); }
+.train__gate--open .train__gate-leaf--b { transform: translateX(96%); }
+
+.train__options {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.5rem, 5vw, 4rem);
+  flex-wrap: wrap;
+  margin-block-start: 2vh;
+}
+
+.topnav__sep { inline-size: 1px; block-size: 20px; background: #3a3a46; margin-inline: 0.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stone, .stone--swim-away, .stone--rattle, .stone--caught, .stone--chosen,
+  .stone--glow-strong .stone__art, .stone--demo .stone__art,
+  .train__engine, .train__gate-leaf {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ── corrections after seeing it on screen ─────────────────────────────── */
+
+/* The sign-stone sprite is a wide oval (712x522), not square. Declaring
+   aspect-ratio:1 letterboxed it and shrank the visible stone. */
+.stone { aspect-ratio: 712 / 522; inline-size: clamp(150px, 20vh, 230px); }
+
+/* The glyph sits slightly above the oval's centre: the sprite is drawn in
+   perspective, so its visual centre is higher than its box centre. */
+.stone__glyph { inset-block-start: 46%; }
+
+/* Fishing: the stones belong IN the water, not floating in the sky. The lake
+   scene puts the waterline just under halfway, so push the row down to meet it
+   and let the rod hang over from the bank. */
+.scene--fishing { background-position: center bottom; }
+.fishing__water { margin-block-start: min(22vh, 190px); min-block-size: auto; }
+.fishing__rod {
+  margin-inline-end: 14%;
+  margin-block-end: -6vh;
+  transform: rotate(8deg);
+}
+
+/* Train: keep the track sitting on the painted rails in the lower third. */
+.scene--train { background-position: center 62%; }
+.train__track { margin-block-start: min(14vh, 110px); }

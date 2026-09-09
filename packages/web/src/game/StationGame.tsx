@@ -9,28 +9,34 @@ import {
   type MechanicHost,
   type Evidence,
   type RoundView,
+  type MechanicId,
 } from '@secret-journey/shared';
-import { BalloonMechanic, balloonDefinition } from '../mechanics/BalloonMechanic.js';
+import { MECHANIC_REGISTRY } from '../mechanics/registry.js';
 import { loadContentPack } from '../content/pack.js';
 
 /**
- * Wires the round controller to the balloon mechanic and plays the five
- * BAL tasks in order.
+ * The generic round host. Written once; every mechanic plugs into it.
  *
- * This is the first thing in the rebuild a child could actually sit in front
- * of. It is not the finished game — the art direction from
- * docs/design-direction.md is not implemented, and narration is silent because
- * no recordings exist yet. What it does prove is the whole spine: content from
- * CSV, a mechanic that knows nothing, the shared hint ladder, and telemetry
- * that flows into the assessment engine.
+ * This is the piece that makes acceptance criterion 3.12 real — adding the
+ * fishing and train mechanics required one registry row and one module each,
+ * and touched nothing here, nothing in the engine, nothing in the hint ladder
+ * and nothing in the content schema.
  */
 
 const pack = loadContentPack();
-const BAL_TASKS = pack.tasks.filter(
-  (t) => t.mechanicId === 'balloon_game' && !t.taskId.endsWith('-S'),
-);
 
-export function BalloonGame() {
+export interface StationGameProps {
+  readonly mechanicId: MechanicId;
+}
+
+export function StationGame({ mechanicId }: StationGameProps) {
+  const entry = MECHANIC_REGISTRY[mechanicId];
+
+  const tasks = useMemo(
+    () => pack.tasks.filter((t) => t.mechanicId === mechanicId && !t.taskId.endsWith('-S')),
+    [mechanicId],
+  );
+
   const [taskIndex, setTaskIndex] = useState(0);
   const [directive, setDirective] = useState<PresentationDirective | null>(null);
   const [view, setView] = useState<RoundView | null>(null);
@@ -40,19 +46,25 @@ export function BalloonGame() {
   const [sessionDone, setSessionDone] = useState(false);
 
   const controllerRef = useRef<RoundController | null>(null);
-  const task = BAL_TASKS[taskIndex];
+  const task = tasks[taskIndex];
 
-  const note = useCallback((line: string) => {
-    setLog((l) => [line, ...l].slice(0, 8));
-  }, []);
-
-  // Build a controller for the current task.
+  // Reset when switching mechanics.
   useEffect(() => {
-    if (!task) return;
+    setTaskIndex(0);
+    setCoins(0);
+    setEvidence([]);
+    setLog([]);
+    setSessionDone(false);
+  }, [mechanicId]);
+
+  const note = useCallback((line: string) => setLog((l) => [line, ...l].slice(0, 8)), []);
+
+  useEffect(() => {
+    if (!task || !entry) return;
     const c = new RoundController({
       task,
       resolver: pack.resolver,
-      capabilities: balloonDefinition.capabilities,
+      capabilities: entry.definition.capabilities,
       childId: 'demo-child',
       sessionId: 'demo-session',
       taskInstanceId: `ti-${task.taskId}-${Date.now()}`,
@@ -60,19 +72,13 @@ export function BalloonGame() {
     controllerRef.current = c;
     setView(c.buildRoundView());
     setDirective(null);
-  }, [task]);
+  }, [task, entry]);
 
-  const apply = useCallback(
-    (directives: readonly PresentationDirective[]) => {
-      // Directives arrive as a list; the mechanic applies one at a time.
-      directives.forEach((d, i) => {
-        setTimeout(() => setDirective(d), i * 40);
-      });
-      const c = controllerRef.current;
-      if (c) setView(c.buildRoundView());
-    },
-    [],
-  );
+  const apply = useCallback((directives: readonly PresentationDirective[]) => {
+    directives.forEach((d, i) => setTimeout(() => setDirective(d), i * 40));
+    const c = controllerRef.current;
+    if (c) setView(c.buildRoundView());
+  }, []);
 
   const host: MechanicHost = useMemo(
     () => ({
@@ -82,8 +88,9 @@ export function BalloonGame() {
         if (!c) return;
         const before = c.ladderStep;
         const directives = c.select(optionId);
-        const after = c.ladderStep;
-        if (after !== before && !c.isResolved) note(`עלינו לשלב ${after} בסולם הרמזים`);
+        if (c.ladderStep !== before && !c.isResolved) {
+          note(`עלינו לשלב ${c.ladderStep} בסולם הרמזים`);
+        }
         apply(directives);
       },
       requestHint: () => {
@@ -98,21 +105,12 @@ export function BalloonGame() {
       },
       reportRoundComplete: () => {
         const c = controllerRef.current;
-        // Guard against a late timer from the PREVIOUS round.
-        //
-        // Live testing caught this: end_round schedules reportRoundComplete()
-        // ~900ms out, by which time controllerRef already points at the next
-        // round. The stale timer then "completed" a round nobody had played —
-        // logged as outcome null with 0 attempts, and it silently granted a
-        // coin and skipped a task. A round that has not resolved cannot be
-        // completed, so refusing here is correct independently of the timer.
+        // Refuse a late timer from the previous round — see the M2 commit.
         if (!c || !c.isResolved) return;
         const t = c.telemetry();
-        const outcome = t.taskInstance.outcome;
 
-        // Spec 1.7: exactly one resource, and an error never costs anything.
+        // Spec 1.7: one resource, and an error never costs anything.
         setCoins((n) => n + 1);
-
         setEvidence((prev) => [
           ...prev,
           {
@@ -121,26 +119,26 @@ export function BalloonGame() {
             contentId: t.taskInstance.targetContentId,
             rootLetterId: t.taskInstance.targetContentId,
             mechanicId: t.taskInstance.mechanicId,
-            outcome: outcome ?? 'abandoned',
+            outcome: t.taskInstance.outcome ?? 'abandoned',
             isScaffolded: t.taskInstance.isScaffolded,
             sessionId: t.taskInstance.sessionId,
             occurredAt: new Date().toISOString(),
           },
         ]);
-        note(`${task?.taskId}: ${outcome} · ${t.attempts.length} ניסיונות`);
+        note(`${task?.taskId}: ${t.taskInstance.outcome} · ${t.attempts.length} ניסיונות`);
 
-        if (taskIndex + 1 < BAL_TASKS.length) setTaskIndex((i) => i + 1);
+        if (taskIndex + 1 < tasks.length) setTaskIndex((i) => i + 1);
         else setSessionDone(true);
       },
-      // Narration is deliberately silent: no recordings exist yet, and spec 1.5
-      // requires uniform pre-recorded audio rather than device TTS.
+      // Silent until recordings exist. Spec 1.5 requires uniform pre-recorded
+      // audio, so device TTS is deliberately not used as a stand-in.
       playPrompt: () => {},
       playOptionAudio: () => {},
       stopNarration: () => {},
       playEffect: () => {},
       reportInteraction: () => {},
     }),
-    [apply, note, task, taskIndex],
+    [apply, note, task, taskIndex, tasks.length],
   );
 
   const states = useMemo(
@@ -149,6 +147,9 @@ export function BalloonGame() {
   );
   const perLetter = states.filter((s) => s.contentScopeId !== null);
   const perSkill = states.filter((s) => s.contentScopeId === null);
+
+  if (!entry) return <p className="page">מכניקה לא רשומה: {mechanicId}</p>;
+  const Mechanic = entry.component;
 
   const restart = () => {
     setTaskIndex(0);
@@ -159,11 +160,11 @@ export function BalloonGame() {
   };
 
   return (
-    <div className="game">
+    <div className={`game ${entry.sceneClass}`}>
       <header className="game__hud">
         <span className="hud__coins">🪙 {coins}</span>
         <span className="hud__progress">
-          {sessionDone ? 'סיימנו' : `סבב ${taskIndex + 1} מתוך ${BAL_TASKS.length}`}
+          {sessionDone ? 'סיימנו' : `סבב ${taskIndex + 1} מתוך ${tasks.length}`}
         </span>
       </header>
 
@@ -175,10 +176,10 @@ export function BalloonGame() {
           <button onClick={restart}>להמשיך לשחק</button>
         </section>
       ) : (
-        // key on the round id: a fresh mount per round, so no animation state,
-        // no "already popped" flag and no pending timer can bleed across.
         view && (
-          <BalloonMechanic key={view.roundId} round={view} host={host} directive={directive} />
+          // Fresh mount per round: no animation state, no "already resolved"
+          // flag and no pending timer can bleed into the next round.
+          <Mechanic key={view.roundId} round={view} host={host} directive={directive} />
         )
       )}
 
