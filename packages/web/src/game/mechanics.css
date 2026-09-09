@@ -92,7 +92,7 @@
   filter: drop-shadow(0 0 24px rgba(255, 196, 40, 1)) drop-shadow(0 6px 12px rgba(0,0,0,0.4));
   animation: pulse 1s ease-in-out infinite;
 }
-.stone--caught, .stone--chosen { animation: lift-away 900ms ease-out forwards; }
+.stone--chosen { animation: lift-away 900ms ease-out forwards; }
 
 @keyframes stone-bob {
   0%, 100% { transform: translateY(0) rotate(-1deg); }
@@ -124,15 +124,6 @@
 }
 
 /* ── fishing ───────────────────────────────────────────────────────────── */
-
-.fishing__rod {
-  inline-size: clamp(90px, 12vh, 150px);
-  align-self: flex-end;
-  margin-inline-end: 8%;
-  margin-block-end: -2vh;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
-  pointer-events: none;
-}
 
 .fishing__water {
   display: flex;
@@ -191,7 +182,7 @@
 .topnav__sep { inline-size: 1px; block-size: 20px; background: #3a3a46; margin-inline: 0.5rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .stone, .stone--swim-away, .stone--rattle, .stone--caught, .stone--chosen,
+  .stone, .stone--swim-away, .stone--rattle, .stone--reeled, .stone--chosen,
   .stone--glow-strong .stone__art, .stone--demo .stone__art,
   .train__engine, .train__gate-leaf {
     animation: none;
@@ -213,12 +204,8 @@
    scene puts the waterline just under halfway, so push the row down to meet it
    and let the rod hang over from the bank. */
 .scene--fishing { background-position: center bottom; }
-.fishing__water { margin-block-start: min(22vh, 190px); min-block-size: auto; }
-.fishing__rod {
-  margin-inline-end: 14%;
-  margin-block-end: -6vh;
-  transform: rotate(8deg);
-}
+/* The stones float on the painted waterline, clear of the rod above them. */
+.fishing__water { min-block-size: auto; margin-block-start: 24vh; }
 
 /* Train: keep the track sitting on the painted rails in the lower third. */
 .scene--train { background-position: center 62%; }
@@ -321,41 +308,106 @@
  * ripple are drawn here so they can span the real distance and move.
  */
 
+/* The rod hangs from the near bank, above and to the physical right of the
+   stones. It is taken OUT OF FLOW: as a flex item it sat directly on top of the
+   row and its handle lay across the rightmost stone, which read as clutter
+   rather than as a bank. Absolute placement lets the water row start where the
+   painted waterline is, independently of how tall the rod happens to be. */
+.fishing-scene { position: relative; }
+
 .fishing__gear {
-  position: relative;
-  align-self: flex-start;
-  margin-inline-start: 6%;
-  inline-size: clamp(150px, 24vh, 260px);
-  block-size: clamp(150px, 24vh, 260px);
+  position: absolute;
+  inset-block-start: 1vh;
+  /* Physical right, and slightly past the scene's edge: the handle running off
+     frame reads as someone standing on the bank. A rod floating complete in
+     mid-air over the middle of a lake does not. */
+  right: -4%;
+  inline-size: clamp(160px, 26vh, 260px);
+  block-size: clamp(160px, 26vh, 260px);
   pointer-events: none;
+  z-index: 4;
+  /* Long enough that the bobber rests at the height the stones float at, so
+     the rod is fishing the same water they are sitting in. */
+  --line-len: clamp(200px, 34vh, 340px);
+}
+
+/*
+ * The sprite is drawn handle-at-bottom-left, tip-at-top-right. Mirrored, the
+ * handle runs off the right edge of the frame — someone on the bank — and the
+ * tip points in over the water instead of away from it.
+ *
+ * Flipped with the independent `scale` property, NOT with transform: the sway
+ * and bend animations own transform, and folding a mirror into every keyframe
+ * of both is how that kind of thing silently comes apart later.
+ */
+
+/*
+ * The mirror lives on a WRAPPER, not on the rod itself.
+ *
+ * `scale` and `transform` share one transform-origin, and the rod's origin has
+ * to be its tip (see below). Mirroring about the tip threw the sprite most of a
+ * box-width sideways, so the line — anchored at a fixed point — hung off the
+ * middle of the rod instead of its end. Separating the two puts each transform
+ * on the origin it actually needs.
+ */
+.fishing__rod-wrap {
+  position: absolute;
+  inset: 0;
+  display: block;
+  scale: -1 1;
 }
 
 .fishing__rod {
   inline-size: 100%;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
-  transform-origin: 18% 88%;
+  /* The TIP, not the handle. A rod pivoting at its tip keeps the point the line
+     hangs from perfectly still, through both the idle sway and the bend of a
+     catch — so the line can never detach from the rod it hangs off. */
+  transform-origin: 91% 7%;
   animation: rod-sway 6s ease-in-out infinite;
 }
 
-/* Hangs from the rod tip, which the sprite puts at its top-right corner. */
+/*
+ * RTL TRAP, DIFFERENT FLAVOUR FROM THE USUAL ONE.
+ *
+ * The line hangs from the rod TIP, and the tip is at the top-right of the
+ * sprite as a matter of pixels — it does not move when the text direction
+ * changes. Positioning it with inset-inline-end put it on the physical LEFT in
+ * this RTL app, so the line hung off the wrong side of the rod entirely.
+ *
+ * Rule: position against a fixed image with PHYSICAL properties (left/right).
+ * Logical properties are for things that should mirror with the text; a painted
+ * rod tip is not one of them.
+ */
+.fishing__tip {
+  position: absolute;
+  top: 7%;
+  left: 9%;                  /* the mirrored sprite's tip corner */
+  inline-size: 0;
+  block-size: 0;
+}
+
 .fishing__line {
   position: absolute;
-  inset-block-start: 6%;
-  inset-inline-end: 6%;
+  top: 7%;
+  left: 9%;
   inline-size: 2px;
-  block-size: clamp(90px, 16vh, 170px);
-  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.35));
+  block-size: var(--line-len);
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.45));
   transform-origin: top center;
   animation: line-sway 6s ease-in-out infinite;
 }
 
+/* Bobber and ripple live at the line's far end, as children — so they inherit
+   its length and its angle instead of restating the same clamp() three times
+   and drifting apart the moment one of them changes. */
 .fishing__bobber {
   position: absolute;
-  /* Sits at the far end of the line. */
-  inset-block-start: calc(6% + clamp(90px, 16vh, 170px));
-  inset-inline-end: calc(6% - 9px);
-  inline-size: 20px;
-  block-size: 20px;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, -40%);
+  inline-size: 26px;
+  block-size: 26px;
   border-radius: 50%;
   background: linear-gradient(180deg, #e8453f 0 50%, #f6f2e6 50% 100%);
   border: 2px solid #2a1a12;
@@ -365,10 +417,11 @@
 /* A widening ring on the surface, so the water reads as water. */
 .fishing__ripple {
   position: absolute;
-  inset-block-start: calc(6% + clamp(90px, 16vh, 170px) + 14px);
-  inset-inline-end: calc(6% - 26px);
-  inline-size: 54px;
-  block-size: 14px;
+  top: 100%;
+  left: 50%;
+  margin-top: 14px;
+  inline-size: 68px;
+  block-size: 18px;
   border: 2px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   animation: ripple 3.2s ease-out infinite;
@@ -387,29 +440,78 @@
   50%      { transform: translateY(6px); }
 }
 @keyframes ripple {
-  0%   { transform: scale(0.5); opacity: 0.75; }
-  100% { transform: scale(1.5); opacity: 0; }
+  0%   { transform: translateX(-50%) scale(0.5); opacity: 0.75; }
+  100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
 }
 
-/* A catch: the rod bends and the line snaps taut upward. */
-.fishing__gear--bite .fishing__rod { animation: rod-bite 900ms ease-out; }
-.fishing__gear--bite .fishing__line { animation: line-taut 900ms ease-out forwards; }
-.fishing__gear--bite .fishing__bobber,
-.fishing__gear--bite .fishing__ripple { animation: none; opacity: 0; transition: opacity 250ms; }
+/* ── the catch ─────────────────────────────────────────────────────────────
+ *
+ * The client's report was "the line doesn't touch the letter". It did not: the
+ * line shortened in place while the stone rose on a separate animation, so the
+ * two were never connected and nothing was ever fished.
+ *
+ * Now the line snaps to the length and angle of the stone that was chosen —
+ * both measured at the moment of the catch and handed here as --catch-len /
+ * --catch-angle — holds for a beat so the connection is visible, then reels in
+ * while the stone travels up that same vector to the rod. The two motions share
+ * one measurement, so they cannot drift apart.
+ *
+ * The rod bends about its OWN TIP (transform-origin at the tip corner) rather
+ * than its handle, so the point the line hangs from stays exactly where it was
+ * measured while the rod visibly takes the weight.
+ */
+.fishing__gear--bite .fishing__rod { animation: rod-bend 900ms ease-out; }
+/* Same easing and the same hold window as the stone's reel-in below. They are
+   drawing one motion, so any difference between the two curves shows up as the
+   hook running ahead of the thing it is supposedly pulling. */
+.fishing__gear--bite .fishing__line { animation: line-reel 900ms ease-in forwards; }
+.fishing__gear--bite .fishing__bobber { animation: none; opacity: 0; transition: opacity 200ms 260ms; }
+.fishing__gear--bite .fishing__ripple { animation: none; opacity: 0; }
 
-@keyframes rod-bite {
+@keyframes rod-bend {
   0%   { transform: rotate(0deg); }
-  30%  { transform: rotate(11deg); }
-  60%  { transform: rotate(-6deg); }
+  25%  { transform: rotate(9deg); }
+  60%  { transform: rotate(-4deg); }
   100% { transform: rotate(0deg); }
 }
-@keyframes line-taut {
-  0%   { block-size: clamp(90px, 16vh, 170px); }
-  100% { block-size: 30px; }
+@keyframes line-reel {
+  /* Taut on the stone, held so the connection registers, then reeled in.
+     THE ANGLE MUST NOT CHANGE. An earlier version eased it back towards
+     vertical while the stone travelled up the original ray, and the two came
+     apart halfway through the reel — the line ended up pointing at open water
+     beside the stone it was supposedly holding. Line and stone share one ray
+     and one fraction (0.14 here, 0.86 of travel there), so the hook stays on
+     the stone for the whole animation. */
+  0%, 30% { block-size: var(--catch-len, 200px); }
+  100%    { block-size: calc(var(--catch-len, 200px) * 0.14); }
+}
+.fishing__gear--bite .fishing__line { transform: rotate(var(--catch-angle, 0deg)); }
+
+/* The stone rides the line up to the rod. Same vector, same timing, opposite
+   direction. transform is PHYSICAL, and so are --reel-x/--reel-y: they are a
+   measured viewport delta, not a text-relative one. */
+.stone--reeled {
+  z-index: 5;
+  animation: reel-in 900ms ease-in forwards;
+}
+@keyframes reel-in {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  15%  { transform: translate(0, -10px) scale(1.1); opacity: 1; }
+  30%  { transform: translate(0, 0) scale(1.06); opacity: 1; }
+  100% {
+    transform: translate(var(--reel-x, 0), var(--reel-y, -150px)) scale(0.5);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fishing__rod, .fishing__line, .fishing__bobber, .fishing__ripple { animation: none; }
+  .fishing__rod, .fishing__line, .fishing__bobber, .fishing__ripple,
+  .stone--reeled { animation: none; }
+  /* Still show the connection, just without the travel. */
+  .fishing__gear--bite .fishing__line {
+    block-size: var(--catch-len, 200px);
+    transform: rotate(var(--catch-angle, 0deg));
+  }
 }
 
 /* ── session end: it was invisible on a dark sky ───────────────────────── */
@@ -436,75 +538,6 @@
   font-size: 1.05rem;
   padding: 0.8rem 2rem;
 }
-
-/* ── fishing gear, corrected ───────────────────────────────────────────── */
-/*
- * RTL TRAP, DIFFERENT FLAVOUR FROM THE USUAL ONE.
- *
- * The line and bobber must hang from the rod TIP, and the tip is at the
- * top-right of the sprite as a matter of pixels - it does not move when the
- * text direction changes. Positioning them with inset-inline-end put them on
- * the physical LEFT in this RTL app, so the line hung off the wrong side of
- * the rod entirely.
- *
- * Rule: position against a fixed image with PHYSICAL properties (left/right).
- * Logical properties are for things that should mirror with the text; a
- * painted rod tip is not one of them.
- */
-
-.fishing__gear {
-  align-self: center;
-  margin-inline-start: 0;
-  margin-inline-end: 34%;
-  inline-size: clamp(180px, 30vh, 300px);
-  block-size: clamp(180px, 30vh, 300px);
-  margin-block-end: -8vh;
-}
-
-.fishing__line {
-  inset-inline-end: auto;
-  inset-block-start: 7%;
-  right: 9%;                 /* physical: the sprite's tip corner */
-  block-size: clamp(130px, 22vh, 230px);
-  inline-size: 2px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.45));
-}
-
-.fishing__bobber {
-  inset-inline-end: auto;
-  inset-block-start: calc(7% + clamp(130px, 22vh, 230px) - 6px);
-  right: calc(9% - 11px);
-  inline-size: 26px;
-  block-size: 26px;
-}
-
-.fishing__ripple {
-  inset-inline-end: auto;
-  inset-block-start: calc(7% + clamp(130px, 22vh, 230px) + 16px);
-  right: calc(9% - 32px);
-  inline-size: 68px;
-  block-size: 18px;
-}
-
-@keyframes line-taut {
-  0%   { block-size: clamp(130px, 22vh, 230px); }
-  100% { block-size: 36px; }
-}
-
-/* The stones sit lower so the line reaches the surface they float on. */
-.fishing__water { margin-block-start: min(10vh, 90px); }
-
-/* Move the gear clear of the stones: the rod crossed over them and the bobber
-   landed on one, which read as clutter rather than as a scene. In this RTL
-   column, align-self:flex-start puts it at the physical right, where the open
-   water is. */
-.fishing__gear {
-  align-self: flex-start;
-  margin-inline-start: 4%;
-  margin-inline-end: 0;
-  margin-block-end: 0;
-}
-.fishing__water { margin-block-start: 0; }
 
 /* The game is a grid with a 1fr content row, so the ending card stretched to
    fill it and sat as a tall empty slab. Let it size to its content. */

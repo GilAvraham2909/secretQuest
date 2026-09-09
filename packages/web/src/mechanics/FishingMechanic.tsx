@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MechanicProps, MechanicDefinition } from '@secret-journey/shared';
 import signStone from '../../../../assets/images/props/sign-stone-blank.png';
 import fishingRod from '../../../../assets/images/props/fishing-rod.png';
@@ -29,12 +29,54 @@ export const fishingDefinition: MechanicDefinition = {
   },
 };
 
-type Anim = 'idle' | 'swim-away' | 'caught' | 'glow-soft' | 'glow-strong' | 'demo' | 'sink';
+type Anim = 'idle' | 'swim-away' | 'reeled' | 'glow-soft' | 'glow-strong' | 'demo' | 'sink';
 
 export function FishingMechanic({ round, host, directive }: MechanicProps) {
   const [anims, setAnims] = useState<Record<string, Anim>>({});
   const [caught, setCaught] = useState<string | null>(null);
   const readyRef = useRef(false);
+
+  const gearRef = useRef<HTMLDivElement | null>(null);
+  const tipRef = useRef<HTMLSpanElement | null>(null);
+  const stoneRefs = useRef(new Map<string, HTMLButtonElement>());
+
+  /**
+   * Aims the line at the stone that was just caught.
+   *
+   * The client's note was "the line doesn't touch the letter" — and it did not:
+   * the line hung at a fixed length into open water while the stone rose on an
+   * unrelated animation, so nothing was ever caught by anything. A fishing line
+   * has to end ON the fish, and the only way to know where that is at runtime is
+   * to measure it. CSS alone cannot: the stones are laid out by a wrapping flex
+   * row, so their positions depend on the viewport.
+   *
+   * Everything measured here is PHYSICAL viewport geometry — see the RTL note
+   * further down. A rotation about a `transform-origin: top center` maps the
+   * downward vector (0,L) to (-L·sinθ, L·cosθ), so aiming at (dx,dy) needs
+   * θ = atan2(-dx, dy), and the line's length is the distance itself.
+   */
+  const aimAtStone = useCallback((optionId: string) => {
+    const gear = gearRef.current;
+    const tip = tipRef.current;
+    const stone = stoneRefs.current.get(optionId);
+    if (!gear || !tip || !stone) return;
+
+    const t = tip.getBoundingClientRect();
+    const s = stone.getBoundingClientRect();
+    // The glyph sits slightly above the oval's box centre (the sprite is drawn
+    // in perspective), and that is the part of the stone the hook should meet.
+    const dx = s.left + s.width / 2 - (t.left + t.width / 2);
+    const dy = s.top + s.height * 0.46 - (t.top + t.height / 2);
+
+    const len = Math.hypot(dx, dy);
+    const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
+
+    gear.style.setProperty('--catch-len', `${len}px`);
+    gear.style.setProperty('--catch-angle', `${angle}deg`);
+    // Stop short of the tip so the stone arrives beside the rod, not through it.
+    stone.style.setProperty('--reel-x', `${-dx * 0.86}px`);
+    stone.style.setProperty('--reel-y', `${-dy * 0.86}px`);
+  }, []);
 
   useEffect(() => {
     if (readyRef.current) return;
@@ -53,7 +95,12 @@ export function FishingMechanic({ round, host, directive }: MechanicProps) {
 
     switch (directive.kind) {
       case 'affirm_success':
-        setAnims((a) => ({ ...a, [directive.optionId]: 'caught' }));
+        // Measure BEFORE the state update, so the custom properties are already
+        // on the elements when the bite class lands and the animation starts.
+        // Otherwise the first frame plays with an unset length and the line
+        // visibly snaps twice.
+        aimAtStone(directive.optionId);
+        setAnims((a) => ({ ...a, [directive.optionId]: 'reeled' }));
         setCaught(directive.optionId);
         host.playEffect('chime');
         break;
@@ -85,7 +132,7 @@ export function FishingMechanic({ round, host, directive }: MechanicProps) {
     }
 
     return () => timers.forEach(clearTimeout);
-  }, [directive, host]);
+  }, [directive, host, aimAtStone]);
 
   return (
     <div className="fishing-scene mech-scene">
@@ -97,11 +144,19 @@ export function FishingMechanic({ round, host, directive }: MechanicProps) {
         as limp as that implies. Drawing it here lets it span the real distance
         to the surface, sway, and snap taut on a catch.
       */}
-      <div className={`fishing__gear ${caught ? 'fishing__gear--bite' : ''}`}>
-        <img className="fishing__rod" src={fishingRod} alt="" draggable={false} />
-        <span className="fishing__line" aria-hidden="true" />
-        <span className="fishing__bobber" aria-hidden="true" />
-        <span className="fishing__ripple" aria-hidden="true" />
+      <div className={`fishing__gear ${caught ? 'fishing__gear--bite' : ''}`} ref={gearRef}>
+        <span className="fishing__rod-wrap" aria-hidden="true">
+          <img className="fishing__rod" src={fishingRod} alt="" draggable={false} />
+        </span>
+        {/* A zero-size marker at the rod tip. The line itself is a poor thing to
+            measure — it is rotating — but this never moves, so the aim is exact. */}
+        <span className="fishing__tip" aria-hidden="true" ref={tipRef} />
+        {/* Bobber and ripple hang INSIDE the line, so they follow its length and
+            its angle for free instead of duplicating the same clamp() twice. */}
+        <span className="fishing__line" aria-hidden="true">
+          <span className="fishing__bobber" />
+          <span className="fishing__ripple" />
+        </span>
       </div>
 
       <div className="fishing__water">
@@ -112,6 +167,10 @@ export function FishingMechanic({ round, host, directive }: MechanicProps) {
           return (
             <button
               key={opt.optionId}
+              ref={(el) => {
+                if (el) stoneRefs.current.set(opt.optionId, el);
+                else stoneRefs.current.delete(opt.optionId);
+              }}
               className={`stone stone--${anim}`}
               style={{ ['--bob-delay' as string]: `${i * 0.9}s` }}
               onClick={() => {
