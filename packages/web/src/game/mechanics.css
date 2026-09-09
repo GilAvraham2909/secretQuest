@@ -223,3 +223,92 @@
 /* Train: keep the track sitting on the painted rails in the lower third. */
 .scene--train { background-position: center 62%; }
 .train__track { margin-block-start: min(14vh, 110px); }
+
+/* ── train, recomposed as one depth ────────────────────────────────────── */
+/*
+ * The scene's track recedes to a vanishing point slightly above centre. The
+ * gate stands AT that point and the train sits on the track in front of it, so
+ * the three layers share one horizon instead of reading as pasted cut-outs.
+ */
+
+.scene--train { background-position: center 58%; }
+
+.train__depth {
+  position: relative;
+  inline-size: 100%;
+  block-size: min(42vh, 400px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Small, because it sits far away where the rails converge. */
+.train__gate-art {
+  position: absolute;
+  inset-block-start: 2%;
+  inline-size: clamp(90px, 13vh, 150px);
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
+  transition: opacity 500ms ease;
+}
+
+/* Bigger than the gate and lower down: nearer to the viewer. */
+.train__loco {
+  position: absolute;
+  inset-block-end: 6%;
+  inline-size: clamp(120px, 19vh, 240px);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+  transition: transform 1200ms cubic-bezier(0.4, 0, 0.5, 1), opacity 1200ms ease;
+}
+
+/* Success: the train pulls away down the track and through the open gate,
+   shrinking into the distance. */
+.train__loco--go {
+  transform: translateY(-46%) scale(0.34);
+  opacity: 0.25;
+}
+
+/* Wrong: the gate itself rattles. The world answers, rather than the child
+   being told they were wrong. */
+@keyframes gate-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-5px) rotate(-1deg); }
+  45%      { transform: translateX(5px) rotate(1deg); }
+  70%      { transform: translateX(-2px); }
+}
+.train__gate-art--shake { animation: gate-shake 640ms ease-in-out; }
+
+.train__options { margin-block-start: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .train__gate-art--shake, .train__loco { animation: none; transition: none; }
+}
+
+/* ── train, take 2: the GATE is the subject ────────────────────────────── */
+/*
+ * First composition stacked a small gate behind a large train and the train
+ * simply hid it. But spec 6 asks "איזו אות תפתח את השער?" — the gate is what
+ * the child is acting on, so it should be the largest thing on screen. The
+ * train becomes a small character waiting behind it, which also keeps both
+ * objects front-facing and consistent with the receding track.
+ */
+
+.train__depth { block-size: min(38vh, 360px); align-items: center; }
+
+.train__gate-art {
+  inset-block-start: 0;
+  inline-size: clamp(170px, 26vh, 300px);
+}
+
+.train__loco {
+  inset-block-end: 0;
+  /* Well clear of the gate, and small enough to read as further back. */
+  inline-size: clamp(70px, 11vh, 130px);
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+}
+
+/* Success: the train rolls forward and through the now-open gate. */
+.train__loco--go {
+  transform: translateX(50%) translateY(-58%) scale(0.42);
+  opacity: 0.2;
+}
