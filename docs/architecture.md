@@ -9,17 +9,18 @@
 >    `-Encoding UTF8` (or the editor's own reader). The manifest should still be
 >    regenerated from `copy.csv` — but because it describes the *old* game, not
 >    because it is corrupt.
-> 2. **Known gap.** This document was written stack-neutral and **predates** the
->    client's production brief (serverless Node, managed Postgres + ORM,
->    Supabase/Firebase auth with JWTs, Stripe subscriptions, Cloudflare CDN).
->    It therefore has **no parent-account, authentication, or subscription
->    model**: `Child` is a root entity with a client-generated id, and
->    `POST /v1/children` and `POST /v1/events` are unauthenticated. Under the
->    production brief the **parent** is the auth principal and the Stripe
->    customer, and children are owned sub-entities that never hold credentials.
->    Every endpoint in §6.4 must be re-scoped to the authenticated parent, and
->    every parent-dashboard read must enforce object-level authorization.
->    **Reconcile before implementing §6.**
+> 2. **Closed 2026-09-09 — was: no auth model.** This document was written
+>    stack-neutral and predated the client's production brief (serverless Node,
+>    managed Postgres + ORM, Supabase/Firebase auth with JWTs, Stripe
+>    subscriptions, Cloudflare CDN), so it had no parent-account,
+>    authentication or subscription model: `Child` was a root entity with a
+>    client-generated id and the write endpoints were unauthenticated.
+>    **§6.0 is now that model** — parent as principal, child as an owned
+>    profile, ownership checked at the data layer on every read — and §6.4 and
+>    §6.5 are re-scoped under it. One thing is deliberately still open and is
+>    flagged in place: **which content is free and which is paid** is a client
+>    decision, and §6.0 designs the enforcement point without guessing the
+>    policy.
 >
 > Stack-neutral by design elsewhere. Where a decision depends on the
 > framework/DB/hosting choice, this document defines the **seam** and states the
@@ -1009,10 +1010,86 @@ The ladder is a pure reducer: `(state, event, capabilities, policy) → (state, 
 
 ## 6. Client / server split
 
-> ⚠️ **See the editor's note at the top of this document.** This section predates
-> the production brief and omits the parent-account / auth / subscription model.
-> Treat the endpoint list below as the *game-data* surface, to be re-scoped under
-> an authenticated parent principal before implementation.
+> **Reconciled 2026-09-09.** §6.0 below is the auth and tenancy model the
+> editor's note said was missing; §6.4's endpoint list and §6.5's parent gate
+> have been re-scoped under it. The rest of §6 was written stack-neutral and
+> survives the production brief unchanged.
+
+### 6.0 Tenancy: the parent is the principal, the child is a profile
+
+Everything in this section exists because of one sentence in the production
+brief: the **parent** is the account holder and the Stripe customer, and the
+**child** is a profile underneath. The original draft made `Child` a root
+entity with a client-generated id and no authentication at all. That is not a
+missing feature; it is a different security model, and almost every rule below
+falls out of correcting it.
+
+**The principal.** One authenticated identity: a parent, held by the auth
+provider (Supabase Auth per the production brief), carried as a JWT in an
+HttpOnly, Secure, SameSite cookie. A child **never has credentials, never has a
+token, and never authenticates**. There is no child login screen to design,
+which is also the right answer for a five-year-old.
+
+**Whose device is this?** The child plays inside the parent's authenticated
+session, on the parent's device. The parent signs in once; the session persists;
+the child taps balloons. This is why §6.3's offline outbox still works: the
+cookie outlives the network, and a queued batch flushes under the same session
+whenever connectivity returns. A session that has genuinely expired is the one
+case where the child's app must surface something, and it surfaces it to the
+*parent* — never as a failure state inside the game.
+
+**Ownership is a column, and it is checked on every read.**
+
+```
+parent (id, auth_user_id, stripe_customer_id, …)
+  └── child (id, parent_id, display_name, avatar_id, …)
+        └── session, task_instance, attempt, hint_event, skill_state, world_state
+```
+
+Every one of those descendant tables carries `child_id`, and every query that
+touches them resolves `child_id → parent_id` and compares it to the JWT's
+subject. Not "the dashboard checks it" — **the data layer checks it**, in one
+place, for every read and every write. A parent fetching another family's
+`childId` must get a 404, not a 403: a 403 confirms the id exists, which is a
+membership oracle over other people's children.
+
+This is the single most likely way this application leaks children's data, and
+it will not be prevented by remembering. It gets a repository-level guard, and
+it gets a test per endpoint that asserts a second parent gets 404.
+
+**Client-generated ids are now also an authorization problem.** §6.3 rule 3
+generates `childId` on the client so the first session can run before the
+network ever succeeds, and that is still right. But an id chosen by a client can
+*collide with someone else's on purpose*. So:
+
+- `POST /v1/children` is idempotent **within a parent** and a hard conflict
+  across parents. Re-posting your own `childId` returns the existing child;
+  posting an id owned by another parent returns 409 with no detail. It must
+  never be a blind upsert — a blind upsert is an account-takeover primitive.
+- Every ingested event's `childId` is checked against the path's child, and the
+  path's child against the token. An event batch that disagrees with itself is
+  rejected wholesale, not partially applied.
+
+**Subscription is enforced server-side, at the point of service.** The client is
+told what it may show so the UI is honest; it is never *trusted* about it. A
+premium content pack is not served without an active-subscription check on the
+request that serves it — per the standing rule, a client-side check is a UX
+affordance and nothing more.
+
+> ⚠️ **Open — needs the client.** Nobody has said what is free and what is paid.
+> The MVP has 8 letters, 4 mechanics and 27 tasks; there is no defensible way to
+> pick the free tier from the architecture. The *enforcement point* is designed
+> here (entitlement resolved server-side, checked when serving content and when
+> bootstrapping); the *policy* is a single table (`entitlement_rule`) precisely
+> so the answer can arrive late without a rebuild. **Do not guess this in code.**
+
+**Data minimisation is a design constraint, not a policy document.** The end
+users are 5–7. The child row holds a display name and an avatar id — no email,
+no date of birth, no free-text field a parent could type an address into. The
+spec already forbids the child's name in any recorded audio (§1.6); the
+corollary here is that it must not reach a log line, an analytics event, or an
+error message either. Contact details belong to the parent row, which is the
+only row a human being has consented on.
 
 ### 6.1 The division
 
@@ -1055,37 +1132,60 @@ This is the mechanism behind three separate acceptance criteria (1.4 "הנתונ
 
 ### 6.4 API surface
 
+**Every route below except `/v1/content/*` requires the parent session cookie,
+and every route carrying a `{childId}` resolves it to its owner and compares
+that to the token before doing anything else.** That check is not repeated in
+each handler description; assume it, and assume 404 (never 403) when it fails.
+
 ```
 # ── Content ──────────────────────────────────────────────────
-GET  /v1/content/manifest
-     → 200 { contentPackVersion: "13", url, sha256, assetBaseUrl }
+GET  /v1/content/manifest                   # authenticated
+     → 200 { contentPackVersion: "13", url, sha256, assetBaseUrl,
+             entitlement: { tier, includedPackIds } }
+     # entitlement is resolved SERVER-side from the subscription; the client is
+     # told what it may show, never asked.
 
-GET  /v1/content/packs/{version}
-     → 200 ContentPack  (immutable; Cache-Control: public, max-age=31536000, immutable)
+GET  /v1/content/packs/{version}            # authenticated + entitlement check
+     → 200 ContentPack  (immutable; Cache-Control: private, max-age=31536000, immutable)
+     # `private`, not `public`: a paid pack must not sit in a shared CDN cache.
+     # The free pack may be public — that is an entitlement_rule decision, and
+     # it is the one place the cache header depends on policy.
 
 # ── Onboarding ───────────────────────────────────────────────
 POST /v1/children
      { childId(uuid, client-gen), displayName|null, avatarId, createdAt }
-     → 201 { child }                        # idempotent on childId
+     → 201 { child }        # idempotent WITHIN the calling parent
+     → 200 { child }        # same parent re-posting the same id
+     → 409                  # id exists under a different parent, no detail
+     # NOT an upsert. See §6.0 — a blind upsert on a client-chosen id is an
+     # account-takeover primitive.
 
 # ── Boot: one round trip ─────────────────────────────────────
 GET  /v1/children/{childId}/bootstrap
      → 200 { child, world, skillStates: SkillState[],
              contentPackVersion, assessmentPolicyVersion,
+             entitlement: { tier, includedPackIds },
              resumeHint: { lastSessionId, lastTaskId } | null }
      # resumeHint drives spec 16.4's "ברוך שובך! המשימה שלך מחכה לך."
 
 # ── Sessions ─────────────────────────────────────────────────
-POST /v1/sessions
-     { sessionId(uuid, client-gen), childId, startedAt,
+POST /v1/children/{childId}/sessions
+     { sessionId(uuid, client-gen), startedAt,
        clientAppVersion, contentPackVersion }
      → 200|201 { session }                  # idempotent on sessionId
 
 # ── The workhorse ────────────────────────────────────────────
-POST /v1/events
+POST /v1/children/{childId}/events
      { events: Event[] }                    # <= 50 per batch
      → 200 { accepted: EventId[], duplicates: EventId[], rejected: {id, reason}[] }
      # rejected = schema-invalid only. Never retried; logged as a defect.
+     #
+     # childId moved from the body into the PATH deliberately. With it in the
+     # body, a batch carries N ids needing N authorization checks, and the
+     # failure mode of missing one is writing another family's data. One id in
+     # one place is one check. Any event whose own childId disagrees with the
+     # path rejects the WHOLE batch — a partially applied batch would leave the
+     # client unable to say what it still owes.
 
 # ── Derived state ────────────────────────────────────────────
 GET  /v1/children/{childId}/skill-states
@@ -1094,9 +1194,25 @@ GET  /v1/children/{childId}/skill-states
 GET  /v1/children/{childId}/world
      → 200 WorldState
 
-# ── Parent (authenticated separately, spec 1.9) ──────────────
-POST /v1/parent/auth
-     { childId, parentSecret } → 200 { token }
+# ── Billing ──────────────────────────────────────────────────
+POST /v1/billing/checkout-session
+     → 200 { url }                          # Stripe Checkout, parent is customer
+
+POST /v1/billing/portal-session
+     → 200 { url }                          # cancel/update card without support
+
+POST /v1/webhooks/stripe                    # UNAUTHENTICATED by design
+     # Verified with stripe.webhooks.constructEvent against the RAW body — the
+     # signature is the authentication, and a parsed body cannot be verified.
+     # Idempotent on Stripe's event id: a replayed event must not re-grant
+     # entitlement or extend a period. Persist the id before acting on it.
+
+# ── Parent dashboard (spec 1.9) ──────────────────────────────
+# `POST /v1/parent/auth { childId, parentSecret }` is DELETED. It was a
+# homegrown shared-secret scheme scoped to a child rather than to a person —
+# under the production brief the parent is already authenticated by the auth
+# provider, and rolling a second credential path would be both redundant and
+# the weakest link in the system.
 
 GET  /v1/parent/{childId}/summary?from=&to=
      → 200 { childName, sessionCount, lettersMet: ContentId[],
@@ -1147,10 +1263,24 @@ type EventType =
 
 ### 6.5 Parent-screen access gate
 
-Spec 1.9 requires the parent screen be reachable but not shown to the child during play. Two layers:
+Spec 1.9 requires the parent screen be reachable but not shown to the child
+during play. Under §6.0 the parent is already authenticated for the whole
+session — including while the child is playing — so the gate is **not** an
+authentication step. It is an attention step, and being clear about which is
+which matters:
 
-- **Client gate** — a "למבוגרים" affordance behind a long-press plus a simple adult-only interaction (e.g. "הקש את השנה הנוכחית"). Not security; a friction gate. Deliberately not a numeric puzzle a 7-year-old could brute-force.
-- **Server auth** — a real token on `/v1/parent/*`. The child's app never holds a parent token.
+- **Client gate** — a "למבוגרים" affordance behind a long-press plus a simple
+  adult-only interaction (e.g. "הקש את השנה הנוכחית"). Not security; friction,
+  so a child does not wander into their own assessment data mid-session.
+  Deliberately not a numeric puzzle a 7-year-old could brute-force.
+- **Server authorization** — `/v1/parent/*` carries the same session cookie as
+  everything else and enforces the same ownership check. There is no separate
+  parent token to hold, mint, or leak.
+
+The one thing the client gate must *not* become is a security control. If a
+future requirement needs real re-authentication at the parent screen — a shared
+family tablet, say — the answer is a re-auth prompt against the auth provider,
+not a stronger riddle.
 
 ### 6.6 Stack seams
 
@@ -1274,7 +1404,11 @@ Nine milestones, each independently demonstrable. The ordering is driven by one 
 
 ### M4 — Server, telemetry, durability *(~1 week)*
 
-- DB schema, `POST /v1/events` with the `event_id` unique index, bootstrap endpoint, session endpoints.
+- **Auth and tenancy first (§6.0).** Parent principal, child as an owned
+  profile, and the ownership guard at the data layer — before any endpoint that
+  reads child data exists, because retrofitting object-level authorization onto
+  handlers written without it is how it ends up missing on one of them.
+- DB schema, `POST /v1/children/{childId}/events` with the `event_id` unique index, bootstrap endpoint, session endpoints.
 - IndexedDB outbox with backoff flusher; append-before-animate enforced by code review + a test that asserts the queue write happens before the directive is applied.
 - Server-side `SkillState` recomputation from events; client/server agreement check.
 - `GET /v1/parent/{childId}/timeline` for replay.
@@ -1282,6 +1416,13 @@ Nine milestones, each independently demonstrable. The ordering is driven by one 
 **Demo:** play four rounds, **kill the browser tab mid-round**, reopen — the child resumes with progress intact and the greeting "ברוך שובך! המשימה שלך מחכה לך." Then, with DevTools set to offline, play five more rounds with no visible difference; go online; watch the server timeline fill in. Show the reconstructed action sequence.
 
 **Riskiest item:** offline-queue correctness — the failure mode is silent data loss, discovered only after the child sessions. **Mitigation:** a deterministic replay test (inject failures at every step of the flush cycle and assert exactly-once server state) plus a scripted manual offline script run before sign-off.
+
+**Second riskiest, and more damaging if it lands:** a missing ownership check on
+one endpoint. Silent data loss costs the study; cross-tenant reads expose
+children's data to other families. **Mitigation:** the check lives in the
+repository layer rather than in handlers, and every child-scoped endpoint gets a
+test asserting a second parent receives 404. That test is written *with* the
+endpoint, not after the set is complete.
 
 ---
 

@@ -9,3 +9,4 @@ export * from './mechanics/contract.js';
 export * from './round/controller.js';
 export * from './content/csv.js';
 export * from './content/lint.js';
+export * from './telemetry/events.js';
