@@ -114,8 +114,8 @@ export function BalloonMechanic({ round, host, directive }: MechanicProps) {
   }, [directive, host]);
 
   return (
-    <div className="balloon-scene">
-      <p className="balloon-prompt">{round.prompt.textHe}</p>
+    <div className="balloon-scene mech-scene">
+      <p className="mech-prompt">{round.prompt.textHe}</p>
 
       <div className="balloon-field">
         {round.options.map((opt, i) => {
@@ -151,7 +151,7 @@ export function BalloonMechanic({ round, host, directive }: MechanicProps) {
         })}
       </div>
 
-      <button className="balloon-help" onClick={() => host.requestHint()} disabled={!!popped}>
+      <button className="mech-help" onClick={() => host.requestHint()} disabled={!!popped}>
         רוצה רמז קטן?
       </button>
     </div>

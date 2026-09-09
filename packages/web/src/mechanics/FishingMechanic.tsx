@@ -91,7 +91,18 @@ export function FishingMechanic({ round, host, directive }: MechanicProps) {
     <div className="fishing-scene mech-scene">
       <p className="mech-prompt">{round.prompt.textHe}</p>
 
-      <img className="fishing__rod" src={fishingRod} alt="" draggable={false} />
+      {/*
+        The rod sprite deliberately carries NO line. A baked-in line is a fixed
+        length that cannot reach the water, and the first version looked exactly
+        as limp as that implies. Drawing it here lets it span the real distance
+        to the surface, sway, and snap taut on a catch.
+      */}
+      <div className={`fishing__gear ${caught ? 'fishing__gear--bite' : ''}`}>
+        <img className="fishing__rod" src={fishingRod} alt="" draggable={false} />
+        <span className="fishing__line" aria-hidden="true" />
+        <span className="fishing__bobber" aria-hidden="true" />
+        <span className="fishing__ripple" aria-hidden="true" />
+      </div>
 
       <div className="fishing__water">
         {round.options.map((opt, i) => {
