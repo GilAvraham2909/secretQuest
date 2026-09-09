@@ -3,6 +3,7 @@ import type { MechanicId, MechanicProps, MechanicDefinition } from '@secret-jour
 import { BalloonMechanic, balloonDefinition } from './BalloonMechanic.js';
 import { FishingMechanic, fishingDefinition } from './FishingMechanic.js';
 import { TrainMechanic, trainDefinition } from './TrainMechanic.js';
+import { MatchMechanic, matchDefinition } from './MatchMechanic.js';
 
 /**
  * The mechanic registry.
@@ -38,6 +39,12 @@ export const MECHANIC_REGISTRY: Partial<Record<MechanicId, RegisteredMechanic>> 
     component: TrainMechanic,
     labelHe: 'רכבת האותיות',
     sceneClass: 'scene--train',
+  },
+  match_game: {
+    definition: matchDefinition,
+    component: MatchMechanic,
+    labelHe: 'משחק התאמה',
+    sceneClass: 'scene--match',
   },
 };
 

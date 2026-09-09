@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MechanicProps, MechanicDefinition } from '@secret-journey/shared';
+import { measureLink, applyLink } from '../game/geometry.js';
 import signStone from '../../../../assets/images/props/sign-stone-blank.png';
 import fishingRod from '../../../../assets/images/props/fishing-rod.png';
 
@@ -46,36 +47,21 @@ export function FishingMechanic({ round, host, directive }: MechanicProps) {
    * The client's note was "the line doesn't touch the letter" — and it did not:
    * the line hung at a fixed length into open water while the stone rose on an
    * unrelated animation, so nothing was ever caught by anything. A fishing line
-   * has to end ON the fish, and the only way to know where that is at runtime is
-   * to measure it. CSS alone cannot: the stones are laid out by a wrapping flex
-   * row, so their positions depend on the viewport.
+   * has to end ON the fish, and where that is is only knowable at runtime.
+   * The measuring itself lives in game/geometry.ts, which the match mechanic
+   * draws its sound-link with too.
    *
-   * Everything measured here is PHYSICAL viewport geometry — see the RTL note
-   * further down. A rotation about a `transform-origin: top center` maps the
-   * downward vector (0,L) to (-L·sinθ, L·cosθ), so aiming at (dx,dy) needs
-   * θ = atan2(-dx, dy), and the line's length is the distance itself.
+   * 0.46 aims at the glyph rather than the box centre — the stone sprite is
+   * drawn in perspective, so its visual middle sits above its box middle.
+   * 0.86 stops the stone short of the tip, so it arrives beside the rod rather
+   * than through it.
    */
   const aimAtStone = useCallback((optionId: string) => {
     const gear = gearRef.current;
     const tip = tipRef.current;
     const stone = stoneRefs.current.get(optionId);
     if (!gear || !tip || !stone) return;
-
-    const t = tip.getBoundingClientRect();
-    const s = stone.getBoundingClientRect();
-    // The glyph sits slightly above the oval's box centre (the sprite is drawn
-    // in perspective), and that is the part of the stone the hook should meet.
-    const dx = s.left + s.width / 2 - (t.left + t.width / 2);
-    const dy = s.top + s.height * 0.46 - (t.top + t.height / 2);
-
-    const len = Math.hypot(dx, dy);
-    const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
-
-    gear.style.setProperty('--catch-len', `${len}px`);
-    gear.style.setProperty('--catch-angle', `${angle}deg`);
-    // Stop short of the tip so the stone arrives beside the rod, not through it.
-    stone.style.setProperty('--reel-x', `${-dx * 0.86}px`);
-    stone.style.setProperty('--reel-y', `${-dy * 0.86}px`);
+    applyLink(measureLink(tip, stone, 0.46), gear, stone, 0.86);
   }, []);
 
   useEffect(() => {

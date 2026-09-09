@@ -10,6 +10,20 @@
 .scene--balloon { background-image: url('../../../../assets/images/scenes/balloon-sky.png'); }
 .scene--fishing { background-image: url('../../../../assets/images/scenes/fishing-lake.png'); }
 .scene--train   { background-image: url('../../../../assets/images/scenes/train-canyon.png'); }
+/*
+ * The grove is a busier, brighter painting than the other three scenes, and the
+ * cards sit right where its lanterns are. A soft pool of shade behind them
+ * keeps the answers the thing you look at — without flattening the scene, which
+ * is doing real work here: this is the only mechanic whose subject (a sound)
+ * cannot be drawn, so the place has to carry the mood on its own.
+ */
+.scene--match {
+  background-image:
+    radial-gradient(ellipse 58% 44% at 50% 30%, rgba(8, 32, 36, 0.66), rgba(8, 32, 36, 0) 72%),
+    url('../../../../assets/images/scenes/match-grove.png');
+  background-position: center, center 62%;
+  background-size: cover, cover;
+}
 
 .mech-scene {
   display: flex;
@@ -133,6 +147,252 @@
   flex-wrap: wrap;
   min-block-size: min(40vh, 380px);
   inline-size: 100%;
+}
+
+/* ── match: the sound, and the cards it belongs to ─────────────────────── */
+/*
+ * Hosts three skills that all ask the same thing — you heard something, which
+ * of these is it? — so the layout is deliberately the same for all three and
+ * only the CARD changes: a picture tile for §8's words, a sign-stone for §7's
+ * letters and §9's pointed combinations.
+ */
+
+.match-scene { position: relative; }
+
+.match__source {
+  position: relative;
+  appearance: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.6rem;
+  margin-block-end: 4vh;
+  border: 3px solid #2a1a12;
+  border-radius: 22px;
+  background: rgba(253, 246, 232, 0.96);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  /* The thread hangs out of the bottom of this box. */
+  overflow: visible;
+}
+
+/* A paper speaker, drawn rather than generated: it has to sit exactly beside
+   the waveform at every size, and a sprite would not. */
+.match__speaker {
+  inline-size: 46px;
+  block-size: 46px;
+  background: #2a1a12;
+  clip-path: polygon(0 32%, 26% 32%, 55% 4%, 55% 96%, 26% 68%, 0 68%);
+}
+
+.match__wave {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  block-size: 46px;
+}
+.match__wave i {
+  display: block;
+  inline-size: 6px;
+  block-size: 22%;
+  border-radius: 3px;
+  background: #c8791f;
+  transition: block-size 200ms ease;
+}
+/* Only while something is actually playing, so the panel is not a decoration
+   that lies about whether a sound is available. */
+.match__source--speaking .match__wave i { animation: wave 900ms ease-in-out infinite; }
+.match__source--speaking .match__wave i:nth-child(2) { animation-delay: 0.12s; }
+.match__source--speaking .match__wave i:nth-child(3) { animation-delay: 0.24s; }
+.match__source--speaking .match__wave i:nth-child(4) { animation-delay: 0.36s; }
+.match__source--speaking .match__wave i:nth-child(5) { animation-delay: 0.48s; }
+
+@keyframes wave {
+  0%, 100% { block-size: 22%; }
+  50%      { block-size: 88%; }
+}
+
+.match__source--linked {
+  border-color: #c8791f;
+  box-shadow: 0 0 26px rgba(255, 196, 40, 0.85), 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Anchor and thread share one point: the bottom centre of the speaker panel. */
+.match__anchor,
+.match__thread {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  inline-size: 0;
+  block-size: 0;
+}
+
+.match__thread {
+  inline-size: 4px;
+  block-size: 0;
+  margin-inline-start: -2px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255, 226, 150, 1), rgba(255, 196, 40, 0.7));
+  /* The grove behind is busy and lantern-lit, so a hairline disappears into it.
+     The glow is what makes the connection read as a connection. */
+  box-shadow: 0 0 12px rgba(255, 196, 40, 0.9);
+  transform-origin: top center;
+  opacity: 0;
+}
+/* Spec 9.5's "החיבור הצליח" — the thread snaps onto the card that was chosen,
+   holds so the connection registers, then draws it in. Length and card travel
+   are the same fraction of the same measured vector (0.66 here, 0.34 there),
+   for the reason spelled out on the fishing line. */
+.match__thread--on {
+  opacity: 1;
+  transform: rotate(var(--catch-angle, 0deg));
+  animation: thread-pull 900ms ease-in forwards;
+}
+@keyframes thread-pull {
+  0%, 30% { block-size: var(--catch-len, 200px); }
+  100%    { block-size: calc(var(--catch-len, 200px) * 0.66); }
+}
+
+.match__cards {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(1.2rem, 4vw, 3rem);
+  flex-wrap: wrap;
+  inline-size: 100%;
+}
+
+.card {
+  position: relative;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  animation: card-breathe 5s ease-in-out infinite;
+  animation-delay: var(--card-delay, 0s);
+}
+.card:disabled { cursor: default; }
+
+/* §8's words: a paper tile with the picture on it. */
+.card--picture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: clamp(140px, 19vh, 210px);
+  aspect-ratio: 1;
+  border: 4px solid #2a1a12;
+  border-radius: 20px;
+  background: rgba(253, 246, 232, 0.96);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  /*
+   * ABSOLUTE, not a percentage. Percentage padding resolves against the
+   * containing block's INLINE size — here the 1100px card row, not the 210px
+   * card — so `padding: 8%` came out as 88px a side and left a 26px hole for
+   * the picture. Full-size markup, postage-stamp art, and nothing in the rule
+   * looks wrong until you measure it.
+   */
+  padding: clamp(10px, 1.6vh, 18px);
+}
+.card__art {
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 0;
+  object-fit: contain;
+}
+
+/* §7's letters and §9's combinations: the same sign-stone as every other
+   mechanic, because it is the object that makes this one world. */
+/*
+ * Bigger than the fishing stone, on purpose. §9's combinations carry a vowel
+ * BELOW the letter, and the design direction sets a hard 88px floor on that
+ * glyph — at the fishing stone's size an 88px line box does not fit, and the
+ * patah landed on the stone's bottom rim where it read as part of the sprite.
+ * The stone is sized around the type here, not the other way round.
+ */
+.card--sign {
+  inline-size: clamp(210px, 30vh, 300px);
+  aspect-ratio: 712 / 522;
+}
+.card__stone {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+.card__glyph {
+  position: absolute;
+  /* 42%, not the 46% the bare-letter stones use: a combination hangs its vowel
+     below the letter, so the ink sits lower in the line box than the letter
+     alone does. Centring the BOX at 46% put the vowel on the rim. */
+  inset-block-start: 42%;
+  inset-inline-start: 50%;
+  /* transform is PHYSICAL, and inset-inline-start is right:50% in this RTL app,
+     so the X translate is POSITIVE. This project has paid for the wrong sign. */
+  transform: translate(50%, -50%);
+  /*
+   * NIQQUD RENDERING — the highest-risk item in the app.
+   * At least 88px, weight 600, line-height 1.35 so the qamats tail does not
+   * clip, and NEVER scaled by a transform: transform-scaling a glyph with
+   * combining marks makes the marks visibly drift off the letter. Which is why
+   * none of the card states below scale a sign card.
+   */
+  font-size: clamp(88px, 9vh, 116px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: #3a2a18;
+  pointer-events: none;
+}
+
+@keyframes card-breathe {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -8px; }
+}
+
+/* Wrong answer — spec 7.4 / 8.5 / 9.6. It tips and settles, and the sound
+   offers itself again. TRANSLATE ONLY: a rotation would carry the niqqud marks
+   with it, and §9's whole point is reading them where they sit. */
+.card--wobble { animation: card-wobble 700ms ease-in-out; }
+@keyframes card-wobble {
+  0%, 100% { translate: 0 0; }
+  20%      { translate: -12px 0; }
+  50%      { translate: 9px 0; }
+  75%      { translate: -4px 0; }
+}
+
+.card--glow-soft .card__stone,
+.card--glow-soft .card__art {
+  filter: drop-shadow(0 0 16px rgba(255, 214, 102, 0.95)) drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+}
+.card--glow-strong .card__stone, .card--demo .card__stone,
+.card--glow-strong .card__art, .card--demo .card__art {
+  filter: drop-shadow(0 0 26px rgba(255, 196, 40, 1)) drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+  animation: pulse 1s ease-in-out infinite;
+}
+.card--glow-strong, .card--demo { z-index: 3; }
+
+/* The chosen card leans towards the sound it belongs to and stays readable —
+   it is the answer, so it must not shrink or fly away while it is being shown.
+   Uses `translate`, not `transform`, so it composes with nothing else. */
+.card--linked {
+  z-index: 5;
+  animation: link-home 900ms ease-in forwards;
+}
+@keyframes link-home {
+  0%      { translate: 0 0; }
+  15%     { translate: 0 -10px; }
+  30%     { translate: 0 0; }
+  100%    { translate: var(--reel-x, 0) var(--reel-y, -40px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .card--wobble, .card--linked, .match__wave i,
+  .card--glow-strong .card__stone, .card--demo .card__stone { animation: none; }
+  /* Keep the connection itself — it is information, not decoration. */
+  .match__thread--on {
+    animation: none;
+    block-size: var(--catch-len, 200px);
+  }
 }
 
 /* ── train ─────────────────────────────────────────────────────────────── */
