@@ -1,51 +1,29 @@
 # Handoff — המסע הסודי / secretQuest
 
-Written 2026-09-09. Replaces the previous handoff, which described the
-superseded vanilla-JS app; that document is preserved in git history at the
-initial commit (`dd5ba84`) if you need it.
+Written 2026-09-09, second rewrite of the day. Replaces the previous handoff
+(commit `26a0b0f`), which is still in git history if you want it.
+
+**Working tree is clean and everything is pushed.** There is no interrupted work
+this time — start wherever you like.
 
 ---
 
-## ⚠️ FIRST: there is uncommitted work
+## What this project is
 
-A commit was interrupted mid-flight. Before anything else:
+A Hebrew letter-learning game for ages 5-7, built to the client's spec at
+`docs/client-spec-mvp.md` (Hebrew, the source of truth). Four mechanics, five
+skills, a remedial adventure, a personal world and a parent dashboard.
 
-```powershell
-$env:Path = "$env:Path;$env:LOCALAPPDATA\Programs\mingit\cmd"
-cd "C:\Users\רזיאל חג'ג'\Documents\gil\computer game Riki"
-git status
-```
-
-Expect changes to `packages/web/src/mechanics/BalloonMechanic.tsx`,
-`packages/web/src/mechanics/FishingMechanic.tsx`,
-`packages/web/src/game/mechanics.css` and
-`assets/images/props/fishing-rod.png`. They are **finished and verified live** —
-the fishing rod rework and the end-screen contrast fix (see "Recent client
-feedback" below). A ready-made commit message is at
-`<scratchpad>/commitmsg9.txt`; if that scratchpad is gone, write a fresh one.
-
-`npm run verify` was green at the point of interruption.
-
----
-
-## What this project is now
-
-A ground-up rebuild. The client delivered a new spec (`docs/client-spec-mvp.md`,
-Hebrew, the source of truth) for a Hebrew letter-learning game for ages 5-7,
-built around **three mechanics** — balloons, letter fishing, letter train — plus
-a remedial adventure, a personal world, and a parent dashboard.
-
-The previous 7-station vanilla app is **not** being ported. It implemented a
-different spec and violated the extensibility criteria that are the core of this
-one. Its art assets and PowerShell tools were carried over; nothing else was.
+A ground-up rebuild. The previous 7-station vanilla app is **not** being
+ported — it implemented a different spec and violated the extensibility
+criteria that are the core of this one. Its art and PowerShell tools were
+carried over; nothing else.
 
 **Repo:** https://github.com/GilAvraham2909/secretQuest (public, `main`).
 
 ---
 
-## Environment — read this before touching anything
-
-Everything below was established this session and is easy to lose.
+## Environment — read before touching anything
 
 **Installed per-user (no admin), all on the User PATH:**
 
@@ -56,42 +34,40 @@ Everything below was established this session and is easy to lose.
 | git | 2.55.0 (MinGit) | `%LOCALAPPDATA%\Programs\mingit\cmd` |
 | gh | 2.100.0 | `%LOCALAPPDATA%\Programs\ghcli\bin` |
 
-Earlier sessions believed no build step was possible here. **That was never
-true** — it just had not been tried. `winget` needs an elevation prompt that
-never surfaces in this environment, so the official ZIP is the route that works.
-
-**A shell started before those installs will not see them.** Prepend the path:
+**A shell started before those installs will not see them.** Prepend:
 
 ```powershell
 $env:Path = "$env:LOCALAPPDATA\Programs\nodejs;$env:Path"
 $env:Path = "$env:Path;$env:LOCALAPPDATA\Programs\mingit\cmd"
 ```
 
-**Git auth:** a classic PAT with `public_repo` scope, stored in Windows
-Credential Manager via `credential.helper wincred`. Plain `git push` works with
-no inline token. Note `gh` itself will refuse this token (it demands
-`repo`+`read:org`) — that is fine, git does not need gh.
+**Git auth:** a classic PAT with `public_repo`, in Windows Credential Manager
+via `credential.helper wincred`. Plain `git push` works. `gh` itself refuses
+this token (it wants `repo`+`read:org`) — fine, git does not need gh.
+
+**No database is needed to develop or test.** The server tests run PGlite
+(PostgreSQL compiled to WASM) in-process from the checked-in migrations. No
+Docker, no bash — seam S7 is a hard constraint here, not a preference.
 
 ### PowerShell traps that have each cost real time
 
-1. **PS 5.1 splits Hebrew text** passed to a native exe. A here-string commit
-   message broke into words git read as pathspecs.
-   → Write the message to a UTF-8 file and use `git commit -F <file>`.
-2. **`Get-Content` reads Hebrew as CP1255**, so valid UTF-8 looks like mojibake
-   (`׳׳™ ׳׳©׳—׳§`). Use `-Encoding UTF8`. This produced a false "the file is
-   corrupt" finding once — verify before believing it.
-3. **Piping a secret to a native exe's stdin corrupts it.** A valid 40-char
-   token arrived as "Bad credentials".
-   → Write to a temp file and use `cmd /c "prog < file"`; PS 5.1 has no `<`.
+1. **PS 5.1 splits Hebrew text** passed to a native exe. Write commit messages
+   to a UTF-8 file and use `git commit -F <file>`.
+2. **`Get-Content` reads Hebrew as CP1255**, so valid UTF-8 looks like mojibake.
+   Use `-Encoding UTF8`. This produced a false "the file is corrupt" finding
+   once — verify before believing it.
+3. **Piping a secret to a native exe's stdin corrupts it.** Write to a temp file
+   and use `cmd /c "prog < file"`.
 4. **The username contains apostrophes** (`רזיאל חג'ג'`), so its 8.3 short path
    is `C:\Users\''45F4~1\...`. git strips those quotes when invoking a
    credential helper, which is why `gh auth setup-git` produces one that cannot
    run. `wincred` resolves from git's own libexec and sidesteps it.
-5. **A `.ps1` with non-ASCII needs a UTF-8 BOM**, or PowerShell reads it as ANSI
-   and fails to parse. Keep tool scripts pure ASCII.
+5. **A `.ps1` with non-ASCII needs a UTF-8 BOM.** Keep tool scripts pure ASCII.
 6. **`"${var}%"` parses `%` as modulo.** Use `-f` formatting.
-7. **Do not define a PS function named `CP`** — it collides with the built-in
-   `cp` alias for Copy-Item and silently runs that instead.
+7. **Do not define a PS function named `CP`** — it collides with the `cp` alias.
+8. **`git push` "fails" in PowerShell when it hasn't.** git writes progress to
+   stderr, and PS 5.1 wraps that in a NativeCommandError. Check the last line
+   for `main -> main`, not the exit noise.
 
 ---
 
@@ -99,16 +75,18 @@ no inline token. Note `gh` itself will refuse this token (it demands
 
 ```powershell
 npm install
-npm run dev            # http://10.0.0.9:5180  (see note below)
-npm run verify         # typecheck + 90 tests + content lint
+npm run dev            # http://10.0.0.9:5180  (LAN address — see below)
+npm run verify         # typecheck + 139 tests + content lint
 npm run content:lint   # content rules only; --list-audio prints missing clips
 npm test
 ```
 
 **The dev URL is the LAN address, not localhost.** Testing happens from a Chrome
-on a different machine, where `127.0.0.1` means that machine's own loopback.
-Vite is bound with `host: true`. If the IP changes, run
-`Get-NetIPAddress -AddressFamily IPv4`.
+on a different machine, where `127.0.0.1` is that machine's own loopback. Vite is
+bound with `host: true`. If the IP changes, run `Get-NetIPAddress -AddressFamily IPv4`.
+
+`npm run verify` takes ~25s now; most of it is the server suite spinning up a
+fresh PGlite per test. That is deliberate isolation, not slowness to fix.
 
 ---
 
@@ -116,20 +94,20 @@ Vite is bound with `host: true`. If the IP changes, run
 
 | File | What it holds |
 |---|---|
-| `docs/client-spec-mvp.md` | The client spec. Source of truth. Every rule traces to a numbered clause here. |
-| `docs/architecture.md` | Domain model, mechanic contract, assessment engine, hint ladder, client/server split, salvage table, milestone plan. |
+| `docs/client-spec-mvp.md` | The client spec. Source of truth. Every rule traces to a numbered clause. |
+| `docs/architecture.md` | Domain model, mechanic contract, assessment engine, hint ladder, **§6.0 auth/tenancy**, API surface, milestone plan. |
 | `docs/research-findings.md` | Stack, learner-model choice, children's-data privacy, age 5-7 evidence, Hebrew niqqud/TTS findings. |
-| `docs/design-direction.md` | Visual direction, per-screen specs, and §6.2b — the sprite pipeline lessons. |
+| `docs/design-direction.md` | Visual direction, per-screen specs, §6.2b sprite pipeline lessons. |
 
 Two standing contracts also live in the project memory folder: the production
 stack + security rules, and the dev-environment notes.
 
 ---
 
-## What is built and verified
+## What is built and verified — M0-M5, plus M4 parts 1-3
 
-Milestones M0-M3 of the plan in `docs/architecture.md`. **90 tests green.**
-Everything below was checked in a real browser, not only by test run.
+**139 tests green, 0 content errors.** Everything below was checked in a real
+browser or against a real Postgres, not only by test run.
 
 ### `packages/shared` — the pure domain layer
 
@@ -137,160 +115,215 @@ No DOM, no framework, no I/O: it must run unchanged on client and server,
 because the remedial trigger has to fire inside a session, possibly offline,
 while the server stays the system of record.
 
-- **`hebrew/`** — the 8 MVP letters, their pointed names, and a 24-entry niqqud
-  bank. Code points are written as explicit escapes because a combining mark is
-  invisible in source and patah-vs-qamats is the whole niqqud skill.
-  **Never call `.normalize()`** on these strings: NFC reorders the vowel ahead
-  of the dagesh and breaks rendering. A test asserts that reordering still
-  happens, so if a future ICU changes we find out rather than silently rotting.
-- **`hints/ladder.ts`** — one shared reducer, not seven copies. Spec 11's six
-  steps. `end_round` has a single disposition, `'success'` — **failure has no
-  representation in the type system**, which is how spec 1.5's "the child can
-  never get stuck" is enforced. A test walks all 16 capability profiles.
-- **`assessment/`** — windowed counting, deliberately not BKT (four parameters
-  per skill calibrated from a population; this MVP has five children). Two
-  named tests are the client's contractual evidence:
-  `single_error_never_triggers_reinforcement` (criterion 3.8, exhaustive over
-  every skill × letter) and
-  `scripted_struggle_triggers_reinforcement_for_correct_letter` (3.9).
-  **Thresholds are data** in `assessment/policy.ts`, never constants.
-- **`round/controller.ts`** — owns the answer key, the ladder and the
-  telemetry. Appends the attempt **before** returning any directive, so a tab
-  that dies mid-animation has already recorded it.
-- **`content/lint.ts`** — the content linter. Its most valuable rule is the
-  spec §21 forbidden-phrase scan: "never tell a child they were wrong" is
-  untestable prose that degrades the moment someone writes a well-meaning error
-  message, and it is now a build failure.
+- **`hebrew/`** — the 8 MVP letters, pointed names, a 24-entry niqqud bank.
+  Code points are explicit escapes because a combining mark is invisible in
+  source and patah-vs-qamats is the whole niqqud skill. **Never call
+  `.normalize()`** on these strings: NFC reorders the vowel ahead of the dagesh
+  and breaks rendering. A test asserts the reordering still happens.
+- **`hints/ladder.ts`** — one shared reducer, spec 11's six steps. `end_round`
+  has a single disposition, `'success'` — **failure has no representation in the
+  type system**, which is how spec 1.5's "the child can never get stuck" is
+  enforced. A test walks all 16 capability profiles.
+- **`assessment/`** — windowed counting, deliberately not BKT. Two named tests
+  are the client's contractual evidence: `single_error_never_triggers_reinforcement`
+  (criterion 3.8) and `scripted_struggle_triggers_reinforcement_for_correct_letter`
+  (3.9). **Thresholds are data** in `assessment/policy.ts`.
+- **`round/controller.ts`** — owns the answer key, the ladder and the telemetry.
+  Appends the attempt **before** returning any directive.
+- **`content/lint.ts`** — the content linter. Its most valuable rule is still the
+  spec §21 forbidden-phrase scan.
+- **`telemetry/events.ts`** — the event envelope, shared so client and server
+  cannot drift.
 
 ### `content/source/*.csv` — content is data, not code
 
 30 tasks, 8 letters, 8 words, 7 letter-sounds, 83 copy lines. A non-programmer
-edits these in Excel. `copy.csv` has a `voiced` column that implements the
-client's audio rule (below).
+edits these in Excel.
 
-### `packages/web` — three playable mechanics
+### `packages/web` — four playable mechanics
 
 `StationGame.tsx` is the generic host; each mechanic is a module plus one
-registry row. Adding fishing and train touched **nothing** in
-`packages/shared` and nothing in `content/source` — verified mechanically, which
-is acceptance criterion 3.12.
+registry row. Balloons, fishing, letter train, and **match** (which hosts
+letter-sound, opening-sound and niqqud — spec §7, §8, §9).
 
 A mechanic contains no answer key, no scoring, no ladder and no telemetry. It
 draws options and reports touches; every piece of feedback arrives as a
 directive.
 
----
+### `packages/server` — the system of record (NEW)
 
-## Client decisions made this session
-
-1. **Fishing is TAP, not drag.** Research found children aged 3-6 reliably fail
-   to keep a target selected while dragging, which would measure motor control
-   rather than letter recognition.
-2. **All audio is pre-recorded; no runtime TTS.** Recording is deferred — the
-   client asked to continue with design and functionality first. Two rules
-   follow and are enforced by the linter:
-   - A spoken line may interpolate only **closed-set** values (letter name,
-     sound, word, combo — one whole-sentence recording per value). It may
-     **never** speak the child's name. The name in on-screen text is fine.
-   - **No narration queue.** One speech channel; a new line cancels the current
-     one. `playNarration` rejects with `NarrationInterrupted` so a caller cannot
-     chain onto stale speech.
-3. **Art is generated**, using the Cloudflare Workers AI tool.
+Parent as auth principal, event ingest, projection, derived skill state, replay
+timeline. Details in the next section, because they are the part most likely to
+be got wrong by someone continuing.
 
 ---
 
-## The sprite pipeline
+## The auth and tenancy model (architecture §6.0) — read this before touching the server
 
-`tools/New-Sprite.ps1` wraps generate → chroma key → crop → normalise. Use it
-rather than the individual scripts. Full notes in `docs/design-direction.md`
-§6.2b; the four lessons in short:
+The editor's note used to say "no auth model, reconcile before implementing §6".
+That is now done and §6.0 is the model. In short:
 
-1. **The key colour must be the complement of the sprite.** Keying works on hue
-   distance, so a sprite near the key colour gets eaten — a coral balloon on
-   magenta came back with alpha 0 through its middle. warm→green, gold→violet,
-   cool→magenta.
-2. **Always crop to the content bounding box.** The generator centres art on
-   1024×1024 and leaves 50-70% empty, so CSS sizes the canvas, not the artwork:
-   a 184px element rendered a ~50px balloon, under the 80px touch floor.
-3. **Normalise a sprite SET onto one canvas**, or no single rule can size them
-   alike.
-4. **Generate props without attached extras** (strings, lines) and draw those in
-   CSS, so they can span real distances.
+**The parent is the only principal.** A child never has credentials, never holds
+a token and never authenticates — so there is no child login screen to design,
+which is also the right answer for a five-year-old. The child plays inside the
+parent's authenticated session on the parent's device. That is what keeps the
+offline outbox working: the cookie outlives the network.
 
-Also: the content filter false-positives constantly. "fishing **rod**" is
-rejected, "fishing **pole**" passes; "blank flat face with nothing carved on it"
-rejected, "a small beige stone tablet with a carved border" passes. Shorten and
-simplify rather than arguing. And the model sometimes **ignores the requested
-background** — the sign-stone came back on a magenta card on a white background,
-so removing white left a pink rectangle behind every stone.
+**Ownership is a column, checked at the data layer.** Every child-scoped read
+and write goes through `requireOwnedChild`, which returns a branded
+`OwnedChildId`. Repository functions take an `OwnedChild`, so **a handler that
+skipped the check would not compile**. This is deliberate: broken object-level
+authorization always has the same shape — fifteen endpoints check and the
+sixteenth forgets.
 
-**When the generator refuses a composition twice, change the design to match
-what it does produce.** Two attempts to force a side-on railway scene both came
-back in perspective; redesigning the train as a rear view took minutes.
+**The failure is 404, never 403.** A 403 on someone else's child confirms that
+child exists, which turns id-guessing into a membership oracle over other
+families. "Not yours" and "does not exist" return an identical status *and* an
+identical message; there is a test for both halves.
 
----
+**Client-generated ids are also an authorization problem.** `childId` is
+generated on the client so the first session can run before the network ever
+succeeds. That means an attacker chooses the value. So child creation is
+idempotent *within* a parent and a hard 409 across parents, and **never an
+upsert** — `ON CONFLICT DO UPDATE` there would let anyone who learns a child id
+overwrite and reparent that child. It reads exactly like ordinary idempotency in
+a diff, which is why there is a test named for it.
 
-## Recent client feedback and how it was resolved
+**`childId` is in the path, not the event body.** One id in one place is one
+check. Any event whose own childId disagrees rejects the whole batch.
 
-- *"the train looks like unrelated images pasted together"* — correct. Two
-  causes: a side-view locomotive on a receding-perspective track (two
-  viewpoints on one screen), and the gate being small behind a large train when
-  spec 6 makes the **gate** the thing the child acts on. Recomposed: rear-view
-  train, front-on gate as the hero, real `gate-closed`/`gate-open` art replacing
-  a CSS rectangle.
-- *"the rod looks small, has no line, looks poor"* — the sprite was bright green
-  bamboo clashing with the dusk palette, with the line baked in at a fixed
-  length that could never reach the water. Regenerated without a line; line,
-  bobber and ripple are CSS now.
-- *"the letters on the end screen are grey and invisible"* — a real contrast
-  bug. The panel set no colour and inherited the dark body ink against a night
-  sky. It is a cream card now.
+`POST /v1/parent/auth { childId, parentSecret }` was **deleted** from the design.
+It was a homegrown shared-secret scheme scoped to a child rather than a person.
 
-**RTL rule learned twice, worth stating plainly:** `transform` is always
-physical, never direction-aware. And when positioning against a **fixed image**
-(a rod tip, a balloon body), use **physical** properties — the tip does not move
-when text direction changes. Logical properties are for things that should
-mirror with the text.
+### The offline outbox (§6.3)
+
+`packages/web/src/telemetry/`. IndexedDB queue, backoff flusher, and a client
+whose only method resolves when the event is **durable** — "append before
+animate", with no fire-and-forget variant to reach for on a busy afternoon.
+
+The flusher is **invisible by design**: no `isOnline`, no `pendingCount`, no
+error state to bind to, and a drain never rejects. Spec 1.5 says a child can
+never get stuck, and an offline banner in front of a five-year-old is being
+stuck. The only thing that surfaces is an expired session, and it surfaces to
+the parent.
+
+Two failures are not retried, and both are judgement calls rather than status
+codes: **401** stops (retrying cannot fix it; the queue is kept), **400** drops
+the batch (retrying would block every event behind it forever). Everything else
+— 5xx, 429, a thrown fetch — is "not now, try later".
+
+Its test suite injects failures at every step of the flush cycle against the
+**real router over real Postgres**, including the case that decides whether the
+design is right: a failure *after* the server committed, response lost on the
+way back.
 
 ---
 
 ## Open decisions for the client
 
-1. **47 audio recordings.** Deferred by the client. The linter's missing-audio
-   list is the work order: `npm run content:lint -- --list-audio`.
-2. **A gap in the spec itself.** §15 lists 27 tasks, but §7.3 and §8.4 describe
-   **5 rounds** each for letter-sound and opening-sound while the table gives 4
-   and 3. I added the missing ones (SND-005, PHO-004, PHO-005) to satisfy the
-   "5 per mechanic" rule — **their content is my reasonable completion, not the
-   client's.** Worth confirming.
-3. **A research finding that contradicts the spec.** §4.4/§5.4/§6.4 allow a
-   round to end without the child ever being shown which letter was correct.
-   Evidence strongly supports removing *evaluative* feedback (red X, scores) but
-   keeping *informational* feedback. Recommended: every round closes by
-   highlighting and voicing the correct answer, positively framed. **This is a
-   spec change and needs client approval.**
-4. **8 letter stroke paths** for the tracing stage cannot be generated. They
-   need hand-authored SVG with correct stroke order, signed off by the client's
-   educator.
+1. **47 audio recordings.** Deferred by the client, and confirmed on 2026-09-09
+   as "only at the end, not now". The linter's missing-audio list is the work
+   order: `npm run content:lint -- --list-audio`.
+2. **Which content is free and which is paid.** Nobody has said. The MVP has 8
+   letters, 4 mechanics and 27 tasks and there is no defensible way to pick the
+   free tier from the architecture. The *enforcement point* is built (entitlement
+   resolved server-side, checked when serving a pack and when bootstrapping) and
+   the *policy* is a table (`entitlement_rules`) so the answer can arrive late
+   without a rebuild. **Do not guess this in code.**
+3. **A gap in the spec itself.** §15 lists 27 tasks, but §7.3 and §8.4 describe
+   **5 rounds** each while the table gives 4 and 3. SND-005, PHO-004 and PHO-005
+   were added to satisfy the "5 per mechanic" rule — **their content is a
+   reasonable completion, not the client's.** Worth confirming.
+4. **A research finding that contradicts the spec.** §4.4/§5.4/§6.4 allow a round
+   to end without the child ever being shown which letter was correct. Evidence
+   supports removing *evaluative* feedback but keeping *informational* feedback.
+   Recommended: every round closes by highlighting and voicing the correct
+   answer, positively framed. **This is a spec change and needs approval.**
+5. **8 letter stroke paths** for the tracing stage cannot be generated. They need
+   hand-authored SVG with correct stroke order, signed off by an educator.
+6. **"The map" — unresolved as of this handoff.** The client asked when the map
+   is being done. There is **no navigation map in this spec**: §19 is a fixed
+   linear sequence, and the `map-background*.png` assets are salvage from the
+   previous app. Three things get called "map": מפת ידע (the parent screen's
+   skill table, M7), "הסימן חזר למפה" (narrative flavour in the §10 adventure,
+   M6), and העולם האישי §3 (the closest thing visually, M7). **Ask which they
+   meant before building anything.** If they want a real hub screen it is a spec
+   change, and the age-fit concern is worth raising: a hub asks a child to choose
+   before they know what the choices mean.
 
 ---
 
 ## Next steps
 
-Per the milestone plan, either:
+**Finish M4 (small):** the outbox exists but `StationGame` does not call it yet —
+it still holds telemetry in React state. Wiring it needs a real `childId` and
+`sessionId`, which belong to the onboarding flow (§2) that M7 owns. Wire it
+behind a dev-harness identity so append-before-animate is exercised end to end,
+and leave real profile creation to M7 rather than half-building onboarding here.
 
-- **M4 — server, telemetry, durability.** The DB, `POST /v1/events` with a
-  unique index for idempotency, and an IndexedDB outbox so a mid-round quit
-  loses nothing. This is also where the client's production brief lands: the
-  **parent** is the auth principal and Stripe customer, the **child** is a
-  profile underneath, and every parent-dashboard read must be scoped by the
-  authenticated parent at the data layer. `docs/architecture.md` §6 predates
-  that brief and has no auth model — reconcile before implementing it.
-- **M5 — the match mechanic**, which unlocks the three remaining skills
-  (letter-sound, opening sound, niqqud) and brings the content to all 27 tasks.
+Also still open in M4: `GET /v1/parent/{childId}/summary`, `skill-by-mechanic`
+(criterion 3.11 verbatim) and `data-quality` (criterion 3.7's measurement
+instrument), plus the Stripe endpoints. The schema and the guard for all of them
+already exist.
 
-**Live verification is a gate, not a habit.** The previous project shipped four
-features in a row on static review alone. This session found a self-completing
-round bug, a content-identity leak through audio filenames, a pink rectangle
-behind every sign-stone, an invisible end screen and an RTL line hanging off the
-wrong side of a rod — **every one of them with all tests green**.
+**Then M6** (the remedial adventure + `TraceMechanic`) **or M7** (world,
+rewards, session end, parent screen). M7 unblocks two of the open questions
+above, so if the client is waiting on the map or the parent screen, do M7 first.
+
+### One known gap in the projection
+
+`rootLetterOf` in `packages/server/src/repo/project.ts` derives a letter for
+`letter:` and `niqqud_combo:` ids but not for `word:` or `letter_sound:` — those
+need the content pack, which the server does not load yet. They contribute
+skill-level evidence but not per-letter evidence, so it is **correct-but-partial
+rather than wrong**. It matters for the remedial trigger (spec 10.1 targets a
+letter), so close it when the pack is loaded server-side.
+
+---
+
+## Things this project has learned the hard way
+
+**Live verification is a gate, not a habit.** Every one of these was found on
+screen with all tests green:
+
+- a self-completing round bug
+- a content-identity leak through audio filenames
+- a pink rectangle behind every sign-stone
+- an invisible end screen
+- an RTL line hanging off the wrong side of a rod
+- a fishing line that never touched the letter it was "catching"
+- word pictures rendering 26px inside a 210px card
+- niqqud vowels landing on the sign-stone's rim
+
+**RTL:** `transform` is always physical, never direction-aware. When positioning
+against a **fixed image** (a rod tip, a balloon body), use **physical**
+properties — the tip does not move when text direction changes. Logical
+properties are for things that should mirror with the text.
+
+**Percentages resolve against the containing block's inline size.** `padding: 8%`
+on a card resolved against the 1100px card row, not the 210px card. Nothing in
+the rule looks wrong until you measure it.
+
+**Measure sprite geometry, do not estimate it.** The rod's painted tip is at
+95.9% / 2.9% of its PNG; the guess was 91% / 7%. Worse, those were percentages of
+two different rectangles, so no amount of nudging would have held at a different
+viewport height. Find the first opaque row and take its x.
+
+**Never hand-type pointed Hebrew in a test.** A hand-typed מַטָּרָה fails against
+the CSV's, printing identically — the same invisible mark-ordering difference the
+niqqud-order lint rule exists for. Compose expectations from the source data.
+
+**A linter over the CSVs cannot catch a bug in the code that reads them.** Three
+copy lines were broken for weeks: an empty `{{sound}}`, a literal
+`{{stretched_sound}}`, and `{{word}}` returning a stretched sound. All linted
+clean, all typechecked, none was on a screen. There are now two guards — a lint
+rule *and* a test that renders every line of every task.
+
+**The sprite pipeline** (`tools/New-Sprite.ps1`, notes in design-direction §6.2b):
+key colour must be the complement of the sprite; always crop to the content
+bounding box; normalise a sprite *set* onto one canvas; generate props without
+attached extras and draw those in CSS. The content filter false-positives
+constantly — shorten and simplify rather than arguing. And **when the generator
+refuses a composition twice, change the design to match what it does produce.**
+Ask for colour explicitly: "a camel" came back as an uncoloured line drawing,
+"a golden brown camel, fully coloured" did not.
