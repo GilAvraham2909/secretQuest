@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MechanicProps, MechanicDefinition } from '@secret-journey/shared';
+import balloonCoral from '../../../../assets/images/props/balloon-coral.png';
+import balloonLagoon from '../../../../assets/images/props/balloon-lagoon.png';
+import balloonGold from '../../../../assets/images/props/balloon-gold.png';
 
 /**
  * פיצוץ בלונים — the reference mechanic implementation.
@@ -24,7 +27,12 @@ export const balloonDefinition: MechanicDefinition = {
   },
 };
 
-const COLORS = ['#e05a6d', '#3f8fd0', '#e5a92e', '#5aa86b', '#8b6bbd', '#d4744f'];
+/**
+ * Balloon art, keyed by SLOT rather than by content. A child must never be able
+ * to learn "the answer is the red one" — the correct letter lands on a
+ * different coloured balloon every round because the controller shuffles.
+ */
+const BALLOON_ART = [balloonCoral, balloonLagoon, balloonGold];
 
 type Anim = 'idle' | 'bob' | 'pop' | 'glow-soft' | 'glow-strong' | 'demo' | 'drift-away';
 
@@ -118,12 +126,7 @@ export function BalloonMechanic({ round, host, directive }: MechanicProps) {
             <button
               key={opt.optionId}
               className={`balloon balloon--${anim}`}
-              style={{
-                // Colour is decorative only and keyed by slot, not by content —
-                // a child must not be able to learn "the answer is the red one".
-                ['--balloon-color' as string]: COLORS[i % COLORS.length],
-                ['--float-delay' as string]: `${i * 0.7}s`,
-              }}
+              style={{ ['--float-delay' as string]: `${i * 0.7}s` }}
               onClick={() => {
                 if (popped) return;
                 host.reportSelection(opt.optionId);
@@ -132,9 +135,17 @@ export function BalloonMechanic({ round, host, directive }: MechanicProps) {
               disabled={popped !== null && popped !== opt.optionId}
             >
               <span className="balloon__body">
+                <img
+                  className="balloon__art"
+                  src={BALLOON_ART[i % BALLOON_ART.length]}
+                  alt=""
+                  draggable={false}
+                />
+                {/* The letter is set live in type, never baked into the art —
+                    spec 18 requires swapping content without touching the
+                    mechanic, and a painted letter would break that. */}
                 <span className="balloon__glyph">{opt.glyph}</span>
               </span>
-              <span className="balloon__string" aria-hidden="true" />
             </button>
           );
         })}

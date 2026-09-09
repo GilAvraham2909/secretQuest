@@ -206,3 +206,130 @@
   padding: 0.3rem 0.45rem;
   border-block-end: 1px solid rgba(0, 0, 0, 0.06);
 }
+
+/* ── real art (generated this session) ─────────────────────────────────── */
+
+.game {
+  background-image: url('../../../../assets/images/scenes/balloon-sky.png');
+  background-size: cover;
+  background-position: center 20%;
+}
+
+.balloon__body {
+  inline-size: clamp(120px, 15vw, 168px);
+  block-size: auto;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  position: relative;
+  display: block;
+}
+.balloon__body::after { content: none; }
+
+.balloon__art {
+  inline-size: 100%;
+  display: block;
+  /* The sprite has generous transparent padding; a drop-shadow on the alpha
+     silhouette reads correctly where a box-shadow would draw a rectangle. */
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.28));
+}
+
+.balloon__glyph {
+  position: absolute;
+  /* Tuned against the generated sprite: the balloon body sits in the upper
+     ~55% of the canvas, so centring on the element would land on the string. */
+  inset-block-start: 38%;
+  inset-inline-start: 50%;
+  /* transform is PHYSICAL, never direction-aware. In this RTL app
+     inset-inline-start:50% resolves to right:50%, so the sign is POSITIVE.
+     Getting this backwards cost this project a real bug once already. */
+  transform: translate(50%, -50%);
+  font-size: clamp(2.6rem, 4.5vw, 3.8rem);
+  font-weight: 700;
+  color: #2a1a12;
+  line-height: 1.35;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+
+.balloon-prompt {
+  color: #fdf6e8;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+.game__hud, .game__debug { backdrop-filter: blur(6px); }
+
+.balloon--pop .balloon__art { animation: pop 520ms ease-out forwards; }
+.balloon--glow-soft .balloon__art {
+  filter: drop-shadow(0 0 14px rgba(255, 214, 102, 0.95)) drop-shadow(0 6px 10px rgba(0,0,0,0.28));
+}
+.balloon--glow-strong .balloon__art,
+.balloon--demo .balloon__art {
+  filter: drop-shadow(0 0 22px rgba(255, 196, 40, 1)) drop-shadow(0 6px 10px rgba(0,0,0,0.28));
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ── normalised sprite geometry ────────────────────────────────────────── */
+/*
+ * All three balloon sprites are normalised to a 512x640 canvas, scaled to fit
+ * and TOP-aligned, so the balloon body occupies the same region in each. That
+ * is what lets one rule size them identically and one offset centre the glyph
+ * on all three. Generated sprites do not come out consistent on their own —
+ * the raw crops were 330x773, 577x932 and 393x814.
+ */
+.balloon__body { inline-size: clamp(132px, 16vw, 184px); aspect-ratio: 512 / 640; }
+.balloon__art { inline-size: 100%; block-size: 100%; object-fit: contain; object-position: top center; }
+
+/* The body fills the upper ~62% of the normalised canvas. */
+.balloon__glyph { inset-block-start: 31%; }
+
+/* CSS string, because the sprites no longer carry one — a generated string
+   varied in length between images and broke the shared geometry. */
+.balloon__body::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 62%;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+  inline-size: 2px;
+  block-size: 34%;
+  background: linear-gradient(180deg, rgba(20, 20, 30, 0.55), rgba(20, 20, 30, 0.08));
+}
+
+/* Contrast: the sky is dark navy where the balloons sit. */
+.balloon-prompt { color: #fdf6e8; }
+.balloon-help {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── layout: hold the play area together on very wide screens ──────────── */
+/*
+ * Measured on the test machine: the viewport is 3440px wide. Sizing balloons
+ * with vw made them shrink into a corner of an otherwise empty field, and the
+ * scene read as sparse rather than inviting. Cap the play area and size the
+ * balloons against it instead.
+ *
+ * Tap target measured at 184x230 CSS px, comfortably over the ~80px floor this
+ * age group needs. Do not let a future layout change take it below that.
+ */
+.balloon-scene {
+  max-inline-size: 1100px;
+  margin-inline: auto;
+  inline-size: 100%;
+  justify-content: center;
+  padding-block-start: 2vh;
+}
+
+.balloon-field {
+  min-block-size: min(46vh, 420px);
+  align-items: center;
+  gap: clamp(1.5rem, 6vw, 5rem);
+}
+
+.balloon__body { inline-size: clamp(150px, 20vh, 240px); }
+
+.balloon-prompt {
+  font-size: clamp(1.6rem, 2.6vh, 2.6rem);
+  margin-block: 1vh 3vh;
+}

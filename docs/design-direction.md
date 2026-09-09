@@ -915,6 +915,47 @@ Suffix required on **every** prompt below:
 | `assets/images/props/lantern.png` | `a small warm glowing paper lantern with a handle, soft golden light inside, flat colours, thick dark ink outline, centred, on a solid flat magenta background, children's sticker illustration style` + suffix |
 | `assets/images/props/sprout.png` | `a single small green sprout with two leaves growing from a mound of soil, flat colours, thick dark ink outline, centred, on a solid flat magenta background, children's sticker illustration style` + suffix |
 
+### 6.2b Pipeline notes — learned generating the balloon set
+
+Four things cost real time on the first sprite batch. Follow these and the next
+batch is quick.
+
+**1. The key colour must be the COMPLEMENT of the sprite, not always magenta.**
+Chroma-keying works on hue distance, so a sprite whose own colour sits near the
+key colour gets eaten. A coral balloon on magenta came back with alpha 0 through
+the middle of the balloon; a teal balloon on green did the same. Pick per sprite:
+
+| Sprite hue | Key colour to generate on |
+|---|---|
+| red / coral / orange | bright chroma key green |
+| yellow / gold | deep violet purple |
+| teal / blue / green | bright magenta pink |
+
+Verify before trusting it: sample a pixel inside the sprite and assert `A > 200`.
+`Crop-ToContent.ps1` throws "image is fully transparent" when the key ate
+everything, which is the cheap early warning.
+
+**2. Always crop to the content bounding box** (`tools/Crop-ToContent.ps1`, new).
+The generator centres art on 1024×1024 and leaves 50-70% empty, so CSS sizes the
+canvas rather than the artwork — a 184px element rendered a ~50px balloon, under
+the 80px touch-target floor. This project already paid for this once with a bed
+sprite that no `inset` value could position because its own bbox was the
+constraint.
+
+**3. Normalise a sprite SET onto one canvas.** Raw crops came out 330×773,
+577×932 and 393×814 — three different aspect ratios, so no single CSS rule could
+size them alike or place the letter consistently. Scale-to-fit onto a shared
+canvas (512×640 here), top-aligned.
+
+**4. Generate props without attached extras** (strings, ribbons, stands) and draw
+those in CSS. A generated string varied in length between images and was the main
+source of the aspect-ratio spread above.
+
+Also: the content filter false-positives on ordinary phrasing. "blank flat face
+with nothing carved on it" was rejected as NSFW twice; "a small beige stone tablet
+with a carved border" passed immediately. Shorten and simplify rather than
+arguing with it.
+
 ### 6.3 Not generatable — must be hand-authored
 
 - **The 8 letter stroke paths** for the tracing stage (`א מ ש ר ד ל ב ג`) as SVG
