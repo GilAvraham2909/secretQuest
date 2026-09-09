@@ -105,10 +105,11 @@ export type PresentationDirective =
   | { readonly kind: 'repeat_prompt' }
   | {
       readonly kind: 'highlight_option';
+      readonly optionId: string;
       readonly intensity: 'soft' | 'strong';
     }
   | { readonly kind: 'remove_options'; readonly optionIds: readonly string[] }
-  | { readonly kind: 'demonstrate' }
+  | { readonly kind: 'demonstrate'; readonly optionId: string }
   | { readonly kind: 'offer_hint' }
   | { readonly kind: 'nudge' }
   | { readonly kind: 'swap_to_simpler_task' }
@@ -155,7 +156,11 @@ const HINT_TYPE_BY_STEP: Partial<Record<LadderStep, HintType>> = {
 
 function directivesForStep(
   step: LadderStep,
-  ctx: { readonly optionId?: string; readonly removableDistractorId?: string },
+  ctx: {
+    readonly optionId?: string;
+    readonly removableDistractorId?: string;
+    readonly targetOptionId: string;
+  },
 ): PresentationDirective[] {
   switch (step) {
     case LADDER_STEPS.RETRY_INVITE:
@@ -165,13 +170,16 @@ function directivesForStep(
     case LADDER_STEPS.HINT_OFFER:
       return [{ kind: 'offer_hint' }];
     case LADDER_STEPS.HINT_GIVEN:
-      return [{ kind: 'highlight_option', intensity: 'soft' }];
+      // The directive is the sanctioned channel for revealing the answer. A
+      // mechanic still cannot work it out on its own — it is told, at the
+      // moment the ladder decides the child has earned the help.
+      return [{ kind: 'highlight_option', optionId: ctx.targetOptionId, intensity: 'soft' }];
     case LADDER_STEPS.REDUCE_OPTIONS:
       return ctx.removableDistractorId
         ? [{ kind: 'remove_options', optionIds: [ctx.removableDistractorId] }]
-        : [{ kind: 'highlight_option', intensity: 'strong' }];
+        : [{ kind: 'highlight_option', optionId: ctx.targetOptionId, intensity: 'strong' }];
     case LADDER_STEPS.DEMONSTRATE:
-      return [{ kind: 'demonstrate' }];
+      return [{ kind: 'demonstrate', optionId: ctx.targetOptionId }];
     case LADDER_STEPS.SIMPLER_TASK:
       return [{ kind: 'swap_to_simpler_task' }];
     default:
@@ -182,6 +190,8 @@ function directivesForStep(
 export interface LadderContext {
   readonly capabilities: MechanicCapabilities;
   readonly idlePolicy: IdlePolicy;
+  /** The correct option, so escalation directives can name it. */
+  readonly targetOptionId: string;
   /** Distractor option ids still on screen, for step 5's cull. */
   readonly remainingDistractorIds: readonly string[];
 }
@@ -239,10 +249,10 @@ export function ladderReducer(
         Math.max(state.step, LADDER_STEPS.HINT_OFFER) as LadderStep,
         ctx.capabilities,
       );
-      return advance(state, step, 'idle_timeout', {});
+      return advance(state, step, 'idle_timeout', { targetOptionId: ctx.targetOptionId });
     }
     if (event.elapsedMs >= offerMs && state.step < LADDER_STEPS.REPEAT_PROMPT) {
-      return advance(state, LADDER_STEPS.REPEAT_PROMPT, 'idle_timeout', {});
+      return advance(state, LADDER_STEPS.REPEAT_PROMPT, 'idle_timeout', { targetOptionId: ctx.targetOptionId });
     }
     if (event.elapsedMs >= nudgeMs) {
       return { state, directives: [{ kind: 'nudge' }], hintEvent: null };
@@ -252,13 +262,13 @@ export function ladderReducer(
 
   // ── Child asked for help (spec 11 step 3) ───────────────────────────────
   if (event.kind === 'help_requested') {
-    return advance(state, LADDER_STEPS.HINT_OFFER, 'child_requested', {});
+    return advance(state, LADDER_STEPS.HINT_OFFER, 'child_requested', { targetOptionId: ctx.targetOptionId });
   }
 
   if (event.kind === 'hint_offer_answered') {
     if (event.accepted) {
       const step = nextExecutableStep(LADDER_STEPS.HINT_OFFER, ctx.capabilities);
-      return advance(state, step, 'child_requested', {});
+      return advance(state, step, 'child_requested', { targetOptionId: ctx.targetOptionId });
     }
     // "לא עכשיו" — respected. The child stays where they are and keeps trying.
     // The idle clock still runs, so help still arrives eventually (spec 11).
@@ -281,6 +291,7 @@ export function ladderReducer(
   );
 
   const transition = advance(withCount, nextStep, 'wrong_selection', {
+    targetOptionId: ctx.targetOptionId,
     optionId: event.optionId,
     removableDistractorId: removable,
   });
@@ -300,7 +311,7 @@ function advance(
   state: LadderState,
   step: LadderStep,
   trigger: HintTrigger,
-  extra: { optionId?: string; removableDistractorId?: string },
+  extra: { optionId?: string; removableDistractorId?: string; targetOptionId: string },
 ): LadderTransition {
   const directives = directivesForStep(step, extra);
   const hintType = HINT_TYPE_BY_STEP[step] ?? null;

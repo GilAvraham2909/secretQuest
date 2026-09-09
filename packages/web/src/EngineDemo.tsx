@@ -66,6 +66,7 @@ export function EngineDemo() {
   const ctx = {
     capabilities: FULL_CAPABILITIES,
     idlePolicy: DEFAULT_IDLE_POLICY,
+    targetOptionId: 'target',
     remainingDistractorIds: ['d1', 'd2'],
   };
 

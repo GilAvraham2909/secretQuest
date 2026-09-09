@@ -1,30 +1,44 @@
 import { useState } from 'react';
 import { NiqqudCheck } from './NiqqudCheck.js';
 import { EngineDemo } from './EngineDemo.js';
+import { BalloonGame } from './game/BalloonGame.js';
+import './game/balloon.css';
 
 /**
- * Developer harness, not the game. These are the two things built so far that
- * can be checked by hand; the real product shell starts at M2.
+ * Developer harness, not the finished game. Three things that can be checked
+ * by hand: the playable balloon slice, the engine rules, and the niqqud gate.
  */
 
-type View = 'niqqud' | 'engine';
+type View = 'balloons' | 'engine' | 'niqqud';
+
+const TABS: { id: View; label: string }[] = [
+  { id: 'balloons', label: 'פיצוץ בלונים' },
+  { id: 'engine', label: 'מנוע וסולם רמזים' },
+  { id: 'niqqud', label: 'בדיקת ניקוד' },
+];
 
 export function App() {
-  const [view, setView] = useState<View>('engine');
+  const [view, setView] = useState<View>('balloons');
 
   return (
     <>
       <nav className="topnav">
         <strong>המסע הסודי</strong>
         <span className="tag">כלי פיתוח</span>
-        <button className={view === 'engine' ? 'on' : ''} onClick={() => setView('engine')}>
-          מנוע וסולם רמזים
-        </button>
-        <button className={view === 'niqqud' ? 'on' : ''} onClick={() => setView('niqqud')}>
-          בדיקת ניקוד
-        </button>
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            className={view === t.id ? 'on' : ''}
+            onClick={() => setView(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
       </nav>
-      {view === 'niqqud' ? <NiqqudCheck /> : <div className="page"><EngineDemo /></div>}
+
+      {view === 'balloons' && <BalloonGame />}
+      {view === 'engine' && <div className="page"><EngineDemo /></div>}
+      {view === 'niqqud' && <NiqqudCheck />}
     </>
   );
 }

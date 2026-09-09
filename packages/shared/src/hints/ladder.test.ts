@@ -20,6 +20,7 @@ const ctxWith = (
 ): LadderContext => ({
   capabilities: caps,
   idlePolicy: DEFAULT_IDLE_POLICY,
+  targetOptionId: 'target',
   remainingDistractorIds: distractors,
 });
 
